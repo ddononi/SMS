@@ -22,6 +22,10 @@ public class SMSBean {
 	private String regDate;			// 발송등록 시간
 	private String deliverTime;	// 이통사 처리 결과 시간
 	private String vender;			// 이통사 정보
+	private String resultMsg;		// 요청결과 메세지
+	private String file1;				// 첨부 파일1
+	private String file2;				// 첨부 파일2
+	private String file3;				// 첨부 파일3	
 	
 	public long getIndex() {
 		return index;
@@ -135,7 +139,6 @@ public class SMSBean {
 		this.deptName = deptName;
 	}
 
-	
 
 	public String getFlag() {
 		return flag;
@@ -170,6 +173,42 @@ public class SMSBean {
 
 	public void setVender(String vender) {
 		this.vender = vender;
+	}
+
+	public String getResultMsg() {
+		return resultMsg;
+	}
+
+	public void setResultMsg(String resultMsg) {
+		this.resultMsg = resultMsg;
+	}
+
+	public String getFile1() {
+		return file1;
+	}
+
+	public void setFile1(String file1) {
+		this.file1 = file1;
+	}
+
+	public String getFile2() {
+		return file2;
+	}
+
+	public void setFile2(String file2) {
+		this.file2 = file2;
+	}
+
+	public String getFile3() {
+		return file3;
+	}
+
+	public void setFile3(String file3) {
+		this.file3 = file3;
+	}
+
+	public void setResreved(boolean resreved) {
+		this.resreved = resreved;
 	}
 
 }

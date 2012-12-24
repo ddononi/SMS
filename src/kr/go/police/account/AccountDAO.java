@@ -10,6 +10,7 @@ import java.util.List;
 import javax.sql.DataSource;
 
 import kr.go.police.CommonCon;
+import kr.go.police.IGwConstant;
 import kr.go.police.aria.Aria;
 
 /**
@@ -32,6 +33,33 @@ public class AccountDAO extends CommonCon {
 			return;
 		}
 	}
+	
+	
+	/**
+	 * 리소스 반환 반환 순서대로 닫아준다.
+	 */
+	public void connClose() {
+		if (rs != null) {
+			try {
+				rs.close();
+			} catch (SQLException e) {
+			}
+		}
+
+		if (pstmt != null) {
+			try {
+				pstmt.close();
+			} catch (SQLException e) {
+			}
+		}
+
+		if (conn != null) {
+			try {
+				conn.close();
+			} catch (SQLException e) {
+			}
+		}
+	}		
 	
 	/**	 
 	 * 로그인 처리
@@ -77,10 +105,10 @@ public class AccountDAO extends CommonCon {
 		try {
 			conn = dataSource.getConnection();
 			String sql = "INSERT INTO user_info ( f_id, f_password, f_grade, f_name, f_phone1, f_deptname, f_email, " + 
-								" f_approve, f_reg_date, f_psname, f_visit_date) VALUES (?, password(?), ?, ?, ?, ?, ?, 'n', now(), ?, now() )";
-			
+								" f_approve, f_reg_date, f_psname, f_visit_date, f_pscode, f_deptcode, f_class, f_last_pwd_modify) " +
+								"VALUES (?, password(?), ?, ?, ?, ?, ?, 'n', now(), ?, now(), ?, ?, ?, now() )";
 			Aria aria = Aria.getInstance();	
-			// 이름 ,전화번호, 이메일
+			// 유저 정보
 			pstmt = conn.prepareStatement(sql);
 			pstmt.setString(1, data.getId());	
 			pstmt.setString(2, data.getPwd());	
@@ -89,7 +117,10 @@ public class AccountDAO extends CommonCon {
 			pstmt.setString(5, aria.encryptByte2HexStr(data.getPhone1()));
 			pstmt.setString(6, data.getDeptName());	
 			pstmt.setString(7,  aria.encryptByte2HexStr(data.getEmail()));	
-			pstmt.setString(8, data.getPsName());				
+			pstmt.setString(8, data.getPsName());			
+			pstmt.setInt(9, data.getPsCode());			
+			pstmt.setInt(10, data.getDeptCode());	
+			pstmt.setInt(11, data.getUserClass());				
 			// update
 			result = pstmt.executeUpdate();
 			
@@ -133,7 +164,8 @@ public class AccountDAO extends CommonCon {
 		try {
 			conn = dataSource.getConnection();
 			String sql = "UPDATE user_info SET f_name = ?, f_password = password(?), f_phone1 = ?," +
-								" f_email = ?, f_grade = ?,  f_psname = ?, f_approve = 'n',  f_deptname = ?, f_class = ? WHERE f_index = ?";
+								" f_email = ?, f_grade = ?,  f_psname = ?, f_approve = ?, " +
+								" f_deptname = ?, f_class = ?, f_pscode = ?, f_deptcode = ? WHERE f_index = ?";
 			pstmt = conn.prepareStatement(sql);
 			Aria aria = Aria.getInstance();			// 암호화 처리
 			pstmt.setString(1, aria.encryptByte2HexStr(data.getName()));
@@ -142,9 +174,12 @@ public class AccountDAO extends CommonCon {
 			pstmt.setString(4, aria.encryptByte2HexStr(data.getEmail()));	
 			pstmt.setString(5, data.getGrade());		
 			pstmt.setString(6, data.getPsName());		
-			pstmt.setString(7, data.getDeptName());					
-			pstmt.setInt(8, data.getUserClass());
-			pstmt.setInt(9, data.getIndex());	
+			pstmt.setString(7, data.isApprove()?"y":"n");				
+			pstmt.setString(8, data.getDeptName());					
+			pstmt.setInt(9, data.getUserClass());
+			pstmt.setInt(10, data.getPsCode());	
+			pstmt.setInt(11, data.getDeptCode());				
+			pstmt.setInt(12, data.getIndex());	
 			
 			// update
 			result = pstmt.executeUpdate();
@@ -175,7 +210,10 @@ public class AccountDAO extends CommonCon {
 								" f_phone1 = ?," +
 								" f_email = ?, " +
 								" f_class = ?, " +
-								" f_approve = ? " +								
+								" f_approve = ?, " +	
+								" f_psname = ?, " +									
+								" f_pscode = ?, " +	
+								" f_deptcode = ? " +									
 								" WHERE f_index = ?";
 			
 			pstmt = conn.prepareStatement(sql);
@@ -186,7 +224,10 @@ public class AccountDAO extends CommonCon {
 			pstmt.setString(5, aria.encryptByte2HexStr(data.getEmail()));	
 			pstmt.setInt(6, data.getUserClass());
 			pstmt.setString(7, data.isApprove()?"y":"n");
-			pstmt.setInt(8, data.getIndex());
+			pstmt.setString(8, data.getPsName());				
+			pstmt.setInt(9, data.getPsCode());	
+			pstmt.setInt(10, data.getDeptCode());				
+			pstmt.setInt(11, data.getIndex());	
 			
 			// update
 			return pstmt.executeUpdate() > 0;
@@ -293,14 +334,22 @@ public class AccountDAO extends CommonCon {
 	
 	/**
 	 *	유저수구하기
+	 * @param psCode 
+	 * 	경찰서 코드
 	 * @return
 	 * 	유저수
 	 */
-	protected int getUserListCount(){
+	protected int getUserListCount(int psCode){
 		int count = 0;
 		try {
 			conn = dataSource.getConnection();
-			pstmt = conn.prepareStatement("SELECT count(*) FROM user_info ");
+			String psWhat = "";
+			// 지방청 관리자가 아니고 각 경찰서 관리자 일경우
+			if(psCode != 100){
+				psWhat = " AND f_pscode = " + psCode;
+			}			
+			pstmt = conn.prepareStatement("SELECT count(*) FROM user_info " +
+					"WHERE  1= 1 AND f_approve = 'y' " + psWhat);
 			rs = pstmt.executeQuery();
 			if(rs.next()){
 				count = rs.getInt(1);
@@ -369,6 +418,9 @@ public class AccountDAO extends CommonCon {
 			    data.setGrade(rs.getString("f_grade"));
 			    data.setDeptName(rs.getString("f_deptname"));
 			    data.setUserClass(rs.getInt("f_class"));
+			    data.setPsCode(rs.getInt("f_pscode"));
+			    data.setDeptCode(rs.getInt("f_deptcode"));
+			    data.setPwdreset(rs.getString("f_last_pwd_modify"));
 			    System.out.println(data.getName());
 			}		
 			
@@ -380,7 +432,7 @@ public class AccountDAO extends CommonCon {
 		}finally{
 			connClose();
 		}
-}	
+	}	
 
 	/**
 	 *	사용자 계정 승인 여부 확인
@@ -437,8 +489,10 @@ public class AccountDAO extends CommonCon {
 			    data.setMonthSendLimit(rs.getInt("f_send_limit"));
 			    data.setName(aria.encryptHexStr2DecryptStr(rs.getString("f_name")));
 			    data.setPsName(rs.getString("f_psname"));
+			    data.setPsCode(rs.getInt("f_pscode"));
 			    data.setGrade(rs.getString("f_grade"));
 			    data.setDeptName(rs.getString("f_deptname"));
+			    data.setDeptCode(rs.getInt("f_deptcode"));			    
 			    data.setUserClass(rs.getInt("f_class"));
 			}		
 			return data;
@@ -453,14 +507,21 @@ public class AccountDAO extends CommonCon {
 	
 	/**
 	 *	미승인 유저수구하기
+	 * @param psCode 
+	 * 		경찰서 코드
 	 * @return
 	 * 	유저수
 	 */
-	protected int getArvListCount(){
+	protected int getArvListCount(int psCode){
 		int count = 0;
 		try {
 			conn = dataSource.getConnection();
-			pstmt = conn.prepareStatement("SELECT count(*) FROM user_info where f_approve='n'");
+			String psWhat = "";
+			if(psCode != 100){
+				psWhat = " AND f_pscode = " + psCode;
+			}			
+			pstmt = conn.prepareStatement("SELECT count(*) FROM user_info " +
+					" WHERE f_approve='n' " + psWhat);
 			rs = pstmt.executeQuery();
 			if(rs.next()){
 				count = rs.getInt(1);
@@ -476,15 +537,20 @@ public class AccountDAO extends CommonCon {
 	
 	/**
 	 *	휴면유저수구하기
+	 * @param psCode 
 	 * @return
 	 * 	유저수
 	 */
-	protected int getQuserListCount(){
+	protected int getQuserListCount(int psCode){
 		int count = 0;
 		try {
 			conn = dataSource.getConnection();
+			String psWhat = "";
+			if(psCode != 100){
+				psWhat = " AND f_pscode = " + psCode;
+			}				
 			pstmt = conn.prepareStatement("SELECT count(*) FROM user_info WHERE" +
-					" f_visit_date < NOW()- interval 3 month");
+					" f_visit_date < NOW()- interval 3 month " + psWhat);
 			rs = pstmt.executeQuery();
 			if(rs.next()){
 				count = rs.getInt(1);
@@ -506,14 +572,23 @@ public class AccountDAO extends CommonCon {
 	 * 		시작 번호
 	 * @param end
 	 * 		마지막 번호
+	 * @param psCode 
+	 * 		경찰서 코드
 	 * @return
 	 */
-	protected List<UserBean> getUserList(final String search, int start, int end){
+	protected List<UserBean> getUserList(final String search, int start, int end, int psCode){
 		List<UserBean> list = new ArrayList<UserBean>();
 		UserBean data = null;		
 		try {
 			conn = dataSource.getConnection();
-			pstmt = conn.prepareStatement("SELECT * FROM user_info WHERE (f_id like ? OR f_name like ?) ORDER BY f_index DESC LIMIT ?, ? ");
+			String psWhat = "";
+			// 지방청 관리자가 아니고 각 경찰서 관리자 일경우
+			if(psCode != 100){
+				psWhat = " AND f_pscode = " + psCode;
+			}
+			pstmt = conn.prepareStatement("SELECT * FROM user_info WHERE " +
+					" (f_id like ? OR f_name like ?)  AND f_approve = 'y' " +
+						psWhat + " ORDER BY f_index DESC LIMIT ?, ? ");
 			pstmt.setString(1, "%" + search + "%");	
 			pstmt.setString(2, "%" + search + "%");
 			pstmt.setInt(3, start -1);	
@@ -554,13 +629,19 @@ public class AccountDAO extends CommonCon {
 	 * 		마지막 번호
 	 * @return
 	 */	
-	protected List<UserBean> getArvList(final String search, int start, int end){
+	protected List<UserBean> getArvList(final String search, int start, int end, int psCode){
 		List<UserBean> list = new ArrayList<UserBean>();
 		UserBean data = null;		
 		try {
 			conn = dataSource.getConnection();
+			// 지방청 관리자가 아니고 각 경찰서 관리자 일경우
+			String psWhat = "";
+			if(psCode != 100){
+				psWhat = " AND f_pscode = " + psCode;
+			}			
 			pstmt = conn.prepareStatement("SELECT * FROM user_info WHERE (f_approve='n') AND" +
-					" (f_id like ? OR f_name like ?) ORDER BY f_index DESC LIMIT ?, ?");
+					" (f_id like ? OR f_name like ?) " + psWhat + 
+					" ORDER BY f_index DESC LIMIT ?, ?");
 			pstmt.setString(1, "%" + search + "%");	
 			pstmt.setString(2, "%" + search + "%");
 			pstmt.setInt(3, start -1);	
@@ -598,16 +679,23 @@ public class AccountDAO extends CommonCon {
 	 * 		시작 번호
 	 * @param end
 	 * 		마지막 번호
+	 * @param psCode 
+	 * 		경찰서 코드
 	 * @return
 	 */	
-	protected List<UserBean> getQuserList(final String search, int start, int end){
+	protected List<UserBean> getQuserList(final String search, int start, int end, int psCode){
 		List<UserBean> list = new ArrayList<UserBean>();
 		UserBean data = null;	
 		try {
 			conn = dataSource.getConnection();
+			// 지방청 관리자가 아니고 각 경찰서 관리자 일경우
+			String psWhat = "";
+			if(psCode != 100){
+				psWhat = " AND f_pscode = " + psCode;
+			}				
 			pstmt = conn.prepareStatement("SELECT * FROM user_info WHERE " +
 					" f_visit_date < NOW() - interval 3 month AND (f_id like ? OR f_name like ?) " +
-					" ORDER BY f_index DESC LIMIT ?, ?");
+					psWhat + " ORDER BY f_index DESC LIMIT ?, ?");
 			pstmt.setString(1, "%" + search + "%");	
 			pstmt.setString(2, "%" + search + "%");
 			pstmt.setInt(3, start -1);	
@@ -637,32 +725,437 @@ public class AccountDAO extends CommonCon {
 			connClose();
 		}
 	}
-	
-	
+
 	/**
-	 * 리소스 반환 반환 순서대로 닫아준다.
+	 * 중복 아이디를 막기위한 세션 체크
+	 * @param id
+	 * @return 
 	 */
-	public void connClose() {
-		if (rs != null) {
-			try {
-				rs.close();
-			} catch (SQLException e) {
+	public boolean sessionCheck(String userId, String sessionId) {
+		try{
+			conn = dataSource.getConnection();
+			String sql = "SELECT count(*) FROM user_info WHERE f_id = ? AND f_session_id = ? ";
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, userId);
+			pstmt.setString(2, sessionId);			
+			rs = pstmt.executeQuery();
+			if(rs.next()){
+				if(rs.getInt(1) > 0){
+					return true;
+				}else{
+					return false;
+				}
 			}
-		}
 
-		if (pstmt != null) {
-			try {
-				pstmt.close();
-			} catch (SQLException e) {
-			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("sessionCheck 에러 : " + e.getMessage());
+		}finally{
+			connClose();
 		}
+		return false;
+	}
 
-		if (conn != null) {
-			try {
-				conn.close();
-			} catch (SQLException e) {
-			}
+	/**
+	 * 중복 로그인방지를 위한 유저 세션 아이디값 업데이트
+	 * @param sessionId
+	 * 		세션 아이디
+	 * @param id
+	 * 		유저 아이디
+	 */
+	public void updateUserSession(String sessionId, String id) {
+		try {
+			conn = dataSource.getConnection();
+			// 사용자가 계급이나 기타 정보를 부정확하게 입력할수 있으므로 관리자가 승인 처리를 하면서
+			// 사용자 정보를 변경하여 저장할수 있도록 한다.
+			String sql = "UPDATE user_info SET f_session_id =? WHERE f_id = ? ";
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, sessionId);				
+			pstmt.setString(2, id);				
+			pstmt.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("updateUserSession 에러 : " + e.getMessage());
+		}finally{
+			connClose();
 		}
 	}		
+	
+	/**
+	 * 경찰서 목록 가져오기
+	 */
+	public List<PoliceBean> getPsList(){
+		ResultSet subRs = null;				
+		PreparedStatement subPstmt = null;		
+		List<PoliceBean> list = new ArrayList<PoliceBean>();
+		PoliceBean data = null;	
+		try {
+			conn = dataSource.getConnection();
+			pstmt = conn.prepareStatement("SELECT * FROM pscode ORDER BY f_pscode ASC "); 
+			rs = pstmt.executeQuery();
+			while(rs.next())	{
+				// 인덱스, 아이디, 이름, 경찰서명, 계급, 부서명, 등급
+			    data = new PoliceBean();	
+			    data.setCode(rs.getInt("f_pscode"));
+			    data.setName(rs.getString("f_psname"));	
+			    // 해당 하위 부서 가져오기
+				subPstmt = conn.prepareStatement("SELECT * FROM organ WHERE" +
+						" f_pscode = ? ORDER BY f_deptcode DESC ");
+				subPstmt.setInt(1, data.getCode());
+				subRs = subPstmt.executeQuery();
+				ArrayList<DeptBean> deptList = new ArrayList<DeptBean>();
+				DeptBean deptData;
+				while(subRs.next()){
+					deptData = new DeptBean();
+					deptData.setPsCode(subRs.getInt("f_pscode"));					
+					deptData.setDeptCode(subRs.getInt("f_deptcode"));
+					deptData.setName(subRs.getString("f_deptname"));	
+					deptList.add(deptData);
+				}
+				data.setList(deptList);
+				list.add(data);
+  			}		
+			return list;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("getPsList 에러 : " + e.getMessage());
+			return null;
+		}finally{
+			connClose();
+		}
+	}	
+	
+	/**
+	 * 경찰서별 전체 부서 목록 가져오기
+	 * @param psCode 
+	 * 		경찰서 코드
+	 */
+	public List<PoliceBean> getDeptList(){
+		ResultSet subRs = null;				
+		PreparedStatement subPstmt = null;		
+		List<PoliceBean> list = new ArrayList<PoliceBean>();
+		PoliceBean data = null;	
+		try {
+			conn = dataSource.getConnection();
+			// 지방청 관리자가 아니고 각 경찰서 관리자 일경우
+			String sql = "SELECT * FROM pscode WHERE 1 = 1 " 
+							+ " ORDER BY f_pscode ASC ";
+			pstmt = conn.prepareStatement(sql); 
+			rs = pstmt.executeQuery();
+			while(rs.next())	{
+				// 인덱스, 아이디, 이름, 경찰서명, 계급, 부서명, 등급
+			    data = new PoliceBean();	
+			    data.setCode(rs.getInt("f_pscode"));
+			    data.setName(rs.getString("f_psname"));	
+			    // 해당 하위 부서 가져오기
+				subPstmt = conn.prepareStatement("SELECT * FROM organ WHERE" +
+						" f_pscode = ? ORDER BY f_deptcode DESC ");
+				subPstmt.setInt(1, data.getCode());
+				subRs = subPstmt.executeQuery();
+				ArrayList<DeptBean> deptList = new ArrayList<DeptBean>();
+				DeptBean deptData;
+				while(subRs.next()){
+					deptData = new DeptBean();
+					deptData.setPsCode(subRs.getInt("f_pscode"));					
+					deptData.setDeptCode(subRs.getInt("f_deptcode"));
+					deptData.setName(subRs.getString("f_deptname"));	
+					deptList.add(deptData);
+				}
+				data.setList(deptList);
+				list.add(data);
+  			}		
+			return list;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("getQuserList 에러 : " + e.getMessage());
+			return null;
+		}finally{
+			if (rs != null) {
+				try {
+					rs.close();
+				} catch (SQLException e) {
+				}
+			}
+			
+			if (subRs != null) {
+				try {
+					subRs.close();
+				} catch (SQLException e) {
+				}
+			}			
 
+			if (subPstmt != null) {
+				try {
+					subPstmt.close();
+				} catch (SQLException e) {
+				}
+			}
+			
+			if (pstmt != null) {
+				try {
+					pstmt.close();
+				} catch (SQLException e) {
+				}
+			}			
+			
+			if (pstmt != null) {
+				try {
+					pstmt.close();
+				} catch (SQLException e) {
+				}
+			}			
+
+			if (conn != null) {
+				try {
+					conn.close();
+				} catch (SQLException e) {
+				}
+			}
+		}
+	}
+
+
+	/**
+	 * 경찰서 코드로 해당 부서 목록 가져오기
+	 * @param code
+	 * 		경찰서 코드
+	 * @return
+	 * 		부서 목록
+	 */
+	public List<DeptBean> getSubDeptList(int code) {
+		List<DeptBean> list = new ArrayList<DeptBean>();
+		DeptBean data = null;	
+		try {
+			conn = dataSource.getConnection();
+			pstmt = conn.prepareStatement("SELECT * FROM organ WHERE f_pscode = ?" +
+								" ORDER BY f_deptcode ASC "); 
+			pstmt.setInt(1, code);
+			rs = pstmt.executeQuery();
+			while(rs.next())	{
+				data = new DeptBean();
+				data.setPsCode(rs.getInt("f_pscode"));					
+				data.setDeptCode(rs.getInt("f_deptcode"));
+				data.setName(rs.getString("f_deptname"));	
+				list.add(data);
+  			}		
+			
+			return list;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("getSubDeptList 에러 : " + e.getMessage());
+			return null;
+		}finally{
+			connClose();
+		}
+	}
+	
+	public List<UserBean> getUserListFromDept(int pscode, int deptcode){
+		List<UserBean> list = new ArrayList<UserBean>();
+		UserBean data = null;		
+		try {
+			conn = dataSource.getConnection();
+			// 부서 조건
+			String deptWhere = "";
+			// 부서 조건이 있을경우만
+			if(deptcode !=0){
+				deptWhere = " AND f_deptcode = " + deptcode;
+			} 
+			pstmt = conn.prepareStatement("SELECT * FROM user_info WHERE f_pscode = ? " + deptWhere);
+			pstmt.setInt(1, pscode);
+			rs = pstmt.executeQuery();
+			while(rs.next())	{
+				Aria aria = Aria.getInstance();					
+				// 사용자정보의 모든 세부 정보를 가져온다.
+			    data = new UserBean();	
+			    data.setIndex(rs.getInt("f_index"));
+			    data.setId(rs.getString("f_id"));	  	
+			    //data.setDeptCode(deptCode);
+			    data.setEmail(aria.encryptHexStr2DecryptStr(rs.getString("f_email")));
+			    data.setMonthSend(rs.getInt("f_month_send"));
+			    data.setPhone1(aria.encryptHexStr2DecryptStr(rs.getString("f_phone1")));			    
+			    data.setRegDate(rs.getString("f_reg_date"));
+			    data.setApprove(rs.getString("f_approve").equalsIgnoreCase("y"));
+			    data.setTotalSendCount(rs.getInt("f_total_send"));
+			    data.setMonthSendLimit(rs.getInt("f_send_limit"));
+			    data.setName(aria.encryptHexStr2DecryptStr(rs.getString("f_name")));
+			    data.setPsName(rs.getString("f_psname"));
+			    data.setGrade(rs.getString("f_grade"));
+			    data.setDeptName(rs.getString("f_deptname"));
+			    data.setUserClass(rs.getInt("f_class"));
+			    data.setPsCode(rs.getInt("f_pscode"));
+			    data.setDeptCode(rs.getInt("f_deptcode"));
+			    list.add(data);
+			}		
+			
+			return list;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("getUserListFromDept 에러 : " + e.getMessage());
+			return null;
+		}finally{
+			connClose();
+		}
+	}
+
+
+	public List<PoliceBean> getPsDeptList(int psCode) {
+		ResultSet subRs = null;				
+		PreparedStatement subPstmt = null;		
+		List<PoliceBean> list = new ArrayList<PoliceBean>();
+		PoliceBean data = null;	
+		try {
+			conn = dataSource.getConnection();
+			// 지방청 관리자가 아니고 각 경찰서 관리자 일경우
+			String psWhat = "";
+			if(psCode != 100){
+				psWhat = " AND f_pscode = " + psCode;
+			}				
+			String sql = "SELECT * FROM pscode WHERE 1 = 1 " 
+							+ psWhat + " ORDER BY f_pscode ASC ";
+			pstmt = conn.prepareStatement(sql); 
+			rs = pstmt.executeQuery();
+			while(rs.next())	{
+				// 인덱스, 아이디, 이름, 경찰서명, 계급, 부서명, 등급
+			    data = new PoliceBean();	
+			    data.setCode(rs.getInt("f_pscode"));
+			    data.setName(rs.getString("f_psname"));	
+			    // 해당 하위 부서 가져오기
+				subPstmt = conn.prepareStatement("SELECT * FROM organ WHERE" +
+						" f_pscode = ? ORDER BY f_deptcode DESC ");
+				subPstmt.setInt(1, data.getCode());
+				subRs = subPstmt.executeQuery();
+				ArrayList<DeptBean> deptList = new ArrayList<DeptBean>();
+				DeptBean deptData;
+				while(subRs.next()){
+					deptData = new DeptBean();
+					deptData.setPsCode(subRs.getInt("f_pscode"));					
+					deptData.setDeptCode(subRs.getInt("f_deptcode"));
+					deptData.setName(subRs.getString("f_deptname"));	
+					deptList.add(deptData);
+				}
+				data.setList(deptList);
+				list.add(data);
+  			}		
+			return list;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("getQuserList 에러 : " + e.getMessage());
+			return null;
+		}finally{
+			if (rs != null) {
+				try {
+					rs.close();
+				} catch (SQLException e) {
+				}
+			}
+			
+			if (subRs != null) {
+				try {
+					subRs.close();
+				} catch (SQLException e) {
+				}
+			}			
+
+			if (subPstmt != null) {
+				try {
+					subPstmt.close();
+				} catch (SQLException e) {
+				}
+			}
+			
+			if (pstmt != null) {
+				try {
+					pstmt.close();
+				} catch (SQLException e) {
+				}
+			}			
+			
+			if (pstmt != null) {
+				try {
+					pstmt.close();
+				} catch (SQLException e) {
+				}
+			}			
+
+			if (conn != null) {
+				try {
+					conn.close();
+				} catch (SQLException e) {
+				}
+			}
+		}
+	}
+	
+	/**
+	 * 패스워드 변경 
+	 * @param data
+	 * @return
+	 *	변경 여부
+	 */
+	protected boolean Passwordchange(String pwd, int index){
+		try {
+			conn = dataSource.getConnection();
+			String sql = "UPDATE user_info SET" +
+								" f_last_pwd_modify = now()," +
+								" f_password = password(?) " +
+								"WHERE f_index = ?";
+			
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, IGwConstant.PWD_SALT  + pwd.trim() + IGwConstant.PWD_SALT );		
+			pstmt.setInt(2, index);
+			// update
+			return pstmt.executeUpdate() > 0;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("Passwordchange 에러 : " + e.getMessage());
+			return false;
+		}finally{
+			connClose();
+		}
+	}
+
+
+	/**
+	 * 회원 탈퇴 처리
+	 * @param userIndex
+	 * 		유저 인덱스
+	 * @param pwd
+	 * 		확인할 비밀번호
+	 * @return
+	 */
+	public boolean dropout(int userIndex, String pwd) {
+		int result = 0;
+		
+		try {
+			conn = dataSource.getConnection();
+			// 회원이 맞는지 검증
+			String sql = "SELECT count(*) FROM user_info WHERE f_index = ? AND f_password = password(?) ";
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setInt(1, userIndex);
+			pstmt.setString(2, IGwConstant.PWD_SALT +  pwd + IGwConstant.PWD_SALT);
+			rs = pstmt.executeQuery();
+			if(rs.next()){
+				if(rs.getInt(1) <= 0)
+					return false;
+			}			
+			
+			pstmt.close();
+			rs.close();
+			// 다시 미승인 처리
+			sql = "UPDATE user_info SET f_approve = 'n' WHERE f_index = ? ";
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setInt(1, userIndex);		
+			// update
+			result = pstmt.executeUpdate();
+			return result > 0;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("dropout 에러 : " + e.getMessage());
+			return false;
+		}finally{
+			connClose();
+		}
+		
+	}		
+	
 }

@@ -6,6 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import kr.go.police.IGwConstant;
 import kr.go.police.action.Action;
 import kr.go.police.action.ActionForward;
 
@@ -17,9 +18,7 @@ public class MyInfoModifyAction implements Action {
 	@Override
 	public ActionForward execute(HttpServletRequest request,
 			HttpServletResponse response) throws Exception {
-		ActionForward forward = new ActionForward();
 		AccountDAO dao = new AccountDAO();
-		
 		request.setCharacterEncoding("euc-kr");
 		HttpSession session = request.getSession();
 		// 유저 인덱스
@@ -50,15 +49,17 @@ public class MyInfoModifyAction implements Action {
 		UserBean data = new UserBean();
 		data.setIndex(index);
 		data.setGrade(grade);
-		data.setDeptName(deptName);
+		data.setDeptName(deptName.split(",")[1]);
+		data.setDeptCode(Integer.valueOf(deptName.split(",")[0]));			
 		data.setPhone1(phone);
 		data.setName(name);
-		data.setPwd(pwd);		
-		data.setPsName(psName);
+		data.setPwd(IGwConstant.PWD_SALT + pwd + IGwConstant.PWD_SALT);		
+		data.setPsName(psName.split(",")[1]);
+		data.setPsCode(Integer.valueOf(psName.split(",")[0]));		
 		data.setEmail(email);
-		data.setApprove(false);	// 다시 미승인으로 처리
 		data.setUserClass(userClass);
-		
+		// 일반사용자면 다시 미승인으로 처리
+		data.setApprove(!session.getAttribute("class").equals(1));
 		//	회원 정보 수정 처리
 		if(dao.modifyMyInfo(data)){
 			response.setContentType("text/html;charset=euc-kr");

@@ -5,6 +5,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import kr.go.police.CommandToken;
 import kr.go.police.SMSUtil;
 import kr.go.police.action.Action;
 import kr.go.police.action.ActionForward;
@@ -56,7 +57,9 @@ public class SmsSendResultAction implements Action {
 		String params = "limit=" +limit + "&search=" + search;
 		String pagiNation = SMSUtil.makePagiNation(listSize, page, limit, "SmsSendResultAction.sm", params);  
 		ArrayList<SMSBean> list = (ArrayList<SMSBean>)dao.getSendResultList(userIndex, start, limit, search);
-		
+		// token 설정
+		String token = CommandToken.set(request);
+		request.setAttribute("token", token);	
 		request.setAttribute("no", no);									// 리스트 번호		
 		request.setAttribute("limit", limit);								// 한페이지수			
 		request.setAttribute("page", page);								//  페이지 번호	

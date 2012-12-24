@@ -144,7 +144,7 @@
 </script>    
 	<!-- 헤더영역 -->
 	<div id="header">
-    	<h1 class="logo"><a href=""><img src="./images/top/logo.gif"  alt="강원청SMS" border="0" /></a></h1>
+    	<h1 class="logo"><a href="./SmsSendViewAction.sm"><img src="./images/top/logo.gif"  alt="강원청SMS" border="0" /></a></h1>
         <ul class="gnb">
         	<li class="admin_btn">
         	<% if(session.getAttribute("admin") != null && (Boolean)session.getAttribute("admin") == true){ %>

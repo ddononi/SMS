@@ -38,7 +38,7 @@
 		                              <td class="tite">
 		                             <!--  <a href=""><img src="images/notice/file_btn.gif" alt="파일추가"  style="margin:5px 0 0 10px;" /></a><br /> -->
 		                              <!-- <input type="text"  class="none" style="width:293px; vertical-align:middle;"> -->
-		                              <input  title="첨부할 파일을 선택하세요"  src="../images/notice/btn_found.gif"   type="file" id="attach_file" name="attach_file" style="padding-left:5px; border:0; vertical-align:middle; margin-bottom:1px;" alt="파일첨부" ></td>  
+		                              <input  title="첨부할 파일을 선택하세요"  src="../images/notice/btn_found.gif"   type="file" id="attach_file" name="attach_file" style="margin-left:10px; border:0; vertical-align:middle; margin-bottom:1px;" alt="파일첨부" ></td>  
 		                          </tr>
 		                   		  <tr  class="end">
 		                      		  <td><strong>내용</strong></td>
@@ -68,9 +68,6 @@ $(function(){
 });	
 
 $(function(){
-	// 툴팁처리
-	$("input").tooltip();
-	
 	// 등록검증 및 confirm 처리
 	$("#reg_btn").click(function(){
 		// 비밀번호 입력 확인

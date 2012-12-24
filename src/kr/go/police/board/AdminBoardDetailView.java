@@ -30,9 +30,9 @@ public class AdminBoardDetailView implements Action {
 		dao.updateReadCount(index, userIndex);
 		// 게시물내용 가져오기
 		BoardBean data = dao. getDetail(index);
+		data.setContent(data.getContent().replaceAll("\n", "<br/>"));		
 		// 해당 게시물의 댓글 목록
 		List<BoardBean>replyList =(List<BoardBean>)dao.getReplyList(index);
-		
 		// token 설정
 		String token = CommandToken.set(request);
 		request.setAttribute("token", token);				

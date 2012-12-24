@@ -26,7 +26,7 @@ public class BoardModifyView implements Action {
 		request.setAttribute("token", token);			
 		request.setAttribute("data", data);
 		String content = data.getContent();
-		content = content.replaceAll("\r\n", "<br/>");
+		content = content.replaceAll("<br/>", "\n");
 		data.setContent(content);		
 		// 게시물 보기 페이지로 이동
 		forward.setPath("./WEB-INF/board/board_modify.jsp"); 

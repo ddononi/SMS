@@ -102,9 +102,9 @@ $(function() {
                     <li class="bytes">0/80Bytes</li>
                 </ul>
                 <ul class="btn">
-               	    <li><a href="#" onclick="return false" id="add_btn"><img src="./images/lettersend/btn_en.gif"  border="0"/></a></li>
-               	    <li><a href="#" onclick="return false" id="delete_btn">삭제</a></li>
-                    <li><a href="javascript:history.go(-1);"  id="cancel_btn"><img src="./images/lettersend/btn_cn.gif" border="0" /></a></li>
+               	    <li><a href="#" onclick="return false" id="add_btn"><img src="./images/lettersend/btn_en.gif"  border="0" alt="등록"  /></a></li>
+               	    <li><a href="#" onclick="return false" id="delete_btn"><img src="./images/lettersend/btn_de.gif"  border="0" alt="삭제" /></a></li>
+                    <li><a href="javascript:history.go(-1);"  id="cancel_btn"><img src="./images/lettersend/btn_cn.gif" border="0" alt="취소"  /></a></li>
                 </ul>
             </div>
 				

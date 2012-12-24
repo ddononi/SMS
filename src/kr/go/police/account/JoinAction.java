@@ -5,6 +5,7 @@ import java.io.PrintWriter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import kr.go.police.IGwConstant;
 import kr.go.police.action.Action;
 import kr.go.police.action.ActionForward;
 
@@ -24,6 +25,7 @@ public class JoinAction implements Action {
 		String id = request.getParameter("id");
 		String pwd = request.getParameter("pwd");
 		String grade = request.getParameter("grade");
+		String userCalss = request.getParameter("userClass");		
 		String name = request.getParameter("name");
 		String deptName = request.getParameter("deptName");
 		String psName = request.getParameter("psname");
@@ -38,12 +40,15 @@ public class JoinAction implements Action {
 		// 사용자 정보를 담는다.
 		UserBean data = new UserBean();
 		data.setId(id);
-		data.setPwd(pwd);
+		data.setPwd(IGwConstant.PWD_SALT + pwd + IGwConstant.PWD_SALT);
 		data.setGrade(grade);
-		data.setDeptName(deptName);
+		data.setDeptName(deptName.split(",")[1]);
+		data.setDeptCode(Integer.valueOf(deptName.split(",")[0]));				
 		data.setPhone1(phone);
 		data.setName(name);
-		data.setPsName(psName);
+		data.setUserClass(Integer.valueOf(userCalss));		
+		data.setPsName(psName.split(",")[1]);
+		data.setPsCode(Integer.valueOf(psName.split(",")[0]));		
 		data.setEmail(email);
 		
 		// 회원 가입처리

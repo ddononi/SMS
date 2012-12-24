@@ -58,7 +58,7 @@ public class SmsListener
 	    	HttpSession session =  she.getSession();
 			String str = "아이디 : " + session.getAttribute("id") +
 						    	"(IP: " + session.getAttribute("clientIp") + ")" +  
-							 "\t이름 : " +session.getAttribute("name") + "님이 로그아웃 하였습니다.";
+							 "\t이름 : " +session.getAttribute("name") + "님이 로그아웃 되었습니다.";
 	    	SMSUtil.writerToLogFile(logPath, str);    	
     }
 
@@ -81,13 +81,14 @@ public class SmsListener
      */    
 	@Override
 	public void attributeAdded(HttpSessionBindingEvent hsbe) {
-		if(hsbe.getValue().equals("loginListener") && hsbe.getName().equals("loginListener")){
+		if(hsbe.getValue().equals("loginListener") && hsbe.getName().equals("sessionListener")){
 	    	HttpSession session =  hsbe.getSession();
 			String str = "아이디 : " + session.getAttribute("id") +
 						    	"(IP: " + session.getAttribute("clientIp") + ")" +  
-							 "\t이름 : " +session.getAttribute("name") + "님이 로그인 하였습니다.";
+							 "\t이름 : " +session.getAttribute("name") + "님이 로그인 되었습니다..";
 	    	SMSUtil.writerToLogFile(logPath, str);    	
 		}
+	
 	}
 
 	@Override
@@ -97,9 +98,16 @@ public class SmsListener
 	}
 
 	@Override
-	public void attributeReplaced(HttpSessionBindingEvent arg0) {
-		// TODO Auto-generated method stub
-		
+	public void attributeReplaced(HttpSessionBindingEvent hsbe) {
+		// 중복 로그인 로그 기록
+		if(hsbe.getValue().equals("duplLogin") && hsbe.getName().equals("sessionListener")){
+	    	HttpSession session =  hsbe.getSession();
+			String str = "아이디 : " + session.getAttribute("id") +
+						    	"(IP: " + session.getAttribute("clientIp") + ")" +  
+							 "\t이름 : " +session.getAttribute("name") 
+							 + "님이 다른 컴퓨터에서 로그인 되었습니다..";
+	    	SMSUtil.writerToLogFile(logPath, str);    	
+		}	
 	}
 	
 }

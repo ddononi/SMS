@@ -52,11 +52,17 @@ public class AccountFrontcontrollerFilter implements Filter {
 		if (!command.equals("/LoginAction.ac") &&
 				!command.equals("/JoinAction.ac") &&
 				!command.equals("/LogoutAction.ac") &&
+				!command.equals("/DeptListAction.ac") &&				
 				!command.equals("/IdCheckAction.ac") ){
 
 			if(!LoginCheck.checkLogin(request, response)){
 				return;
 			}
+			
+			// 중복 접속을 막기 위한 세션아이디값 비교 
+			if(!LoginCheck.sessionIdCheck(request, response)){
+				return;
+			}			
 		}
 
 		chain.doFilter(request, response);

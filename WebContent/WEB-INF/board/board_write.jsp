@@ -72,8 +72,6 @@ $(function(){
 });	
 
 $(function(){
-	// 툴팁처리
-	$("input").tooltip();
 	
 	// 등록검증 및 confirm 처리
 	$("#reg_btn").click(function(){

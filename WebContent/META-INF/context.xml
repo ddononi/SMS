@@ -12,6 +12,9 @@
 	          jmxEnabled="true"
 	          jdbcInterceptors="org.apache.tomcat.jdbc.pool.interceptor.ConnectionState;
 	            org.apache.tomcat.jdbc.pool.interceptor.StatementFinalizer"
+			  validationQuery="SELECT 1"
+			  validationInterval="30000"
+			  testWhileIdle="true"	            
 	          username="root"
 	          password="admin"
 	          driverClassName="com.mysql.jdbc.Driver"

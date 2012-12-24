@@ -49,6 +49,10 @@ public class AdminModifyUserAction implements Action {
 		data.setPsName(psName);
 		data.setEmail(email);
 		data.setApprove(approve.equalsIgnoreCase("y"));
+		data.setPsName(psName.split(",")[1]);
+		data.setPsCode(Integer.valueOf(psName.split(",")[0]));			
+		data.setDeptName(deptName.split(",")[1]);
+		data.setDeptCode(Integer.valueOf(deptName.split(",")[0]));					
 		data.setUserClass(userClass);
 		
 		//	회원 정보 수정 처리

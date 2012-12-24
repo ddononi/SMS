@@ -65,7 +65,6 @@
 							<th>보낸이</th>
 							<th>받는번호</th>							
 							<th>메세지</th>
-							<th>전송결과</th>
 							<th>전송타입</th>
 							<th>예약시간</th>																							
 						</tr>
@@ -97,9 +96,6 @@
 							<td>					
 					   		   <a 	title="${data.message}"  class="message" href="#" onclick="return false;" >${data.message}</a>
 					       </td>					
-							<td>					
-					   		 ${data.requestResult}
-					       </td>	
 							<td>					
 					   		   ${data.flag}
 					       </td>						       

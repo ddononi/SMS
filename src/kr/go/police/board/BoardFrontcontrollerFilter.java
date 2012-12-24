@@ -55,6 +55,11 @@ public class BoardFrontcontrollerFilter implements Filter {
 			return;
 		}
 		
+		// 중복 접속을 막기 위한 세션아이디값 비교 
+		if(!LoginCheck.sessionIdCheck(request, response)){
+			return;
+		}			
+		
 		//	토큰 검사할 command
 		if(command.equals("/BoardWriteAction.bo") ||
 				command.equals("/BoardReplyWriteAction.bo") ||

@@ -76,7 +76,7 @@ public class ReservedListAction implements Action {
 		request.setAttribute("pagiNation", pagiNation);				// 페이지네이션
 		request.setAttribute("userIndex", userIndex);					//유저 정보
 		request.setAttribute("type", type);								//검색 타입
-		forward.setPath("./WEB-INF/sms/reservedList.jsp");
+		forward.setPath("./WEB-INF/sms/reserved_list.jsp");
 
 		return forward;
 	}

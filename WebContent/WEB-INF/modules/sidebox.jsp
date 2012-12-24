@@ -29,7 +29,7 @@
 					<!-- 공지사항 -->
 					<c:forEach var="data"  items="${list}" >
 						<li><img src="./images/boder/bullet.gif" /> 
-                        		<a href="./BoardDetailView.bo?index=${data.index}" > 
+                        		<a href="./NoticeDetailView.bo?index=${data.index}" > 
                    					${data.title}</a></li>
 					</c:forEach>	
                 </ul>

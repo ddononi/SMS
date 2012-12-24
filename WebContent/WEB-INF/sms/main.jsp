@@ -22,7 +22,9 @@
 .ui-timepicker-rtl{ direction: rtl; }
 .ui-timepicker-rtl dl { text-align: right; }
 .ui-timepicker-rtl dl dd { margin: 0 65px 10px 10px; }
-
+#send_btn{ cursor: pointer;}
+.attach_file{display: inline; margin-right:40px;; float: right; }
+.attach_file * {display: none; cursor: pointer;}
 </style>
 <script type="text/javascript" src="./js/sms_page.js"></script>
 <script type="text/javascript" src="./js/timepicker.js"></script>
@@ -37,17 +39,17 @@
         <div id="contentsWrap">
         	<h3><img src="./images/lettersend/title.gif" alt="문자보내기" /></h3>
             <div class="phone">
-            			<input type="hidden"  value="${sessionScope.phone}"  name="callback"  id="callback"  />
-						<ul class="choice">
-							<li><input type="radio" name="send_type" alt="SMS" value="s" checked="checked" /><span>SMS</span>
-								<input type="radio" name="send_type" alt="MMS" value="m" /><strong>MMS</strong>
+						<ul class="choice" >
+							<li ><input  disabled="disabled" readonly="readonly"  type="radio" name="send_type" alt="SMS" value="s" checked="checked" /><span>SMS</span>
+								<input disabled="disabled"  readonly="readonly"  type="radio"  name="send_type" alt="MMS" value="m" /><strong style="color: #FF2200;">MMS</strong>
 							</li>
 						</ul>
-						<p class="disk_icon">
+						<p class="disk_icon" style="visibility:hidden;">
 							<img src="././images/lettersend/icon_disk2.gif" />
 						</p>
 						<p>
-							<textarea style="height:252px;" id="message" name="message" cols="" rows="" class="txt"></textarea>
+							<textarea style="height:252px; white-space:pre-wrap;" 
+							 id="message"  name="message" cols="" rows="" class="txt"></textarea>
 						</p>
 						<ul class="txt_01">
 							<li><img  id="sms_sep_icon" src="./images/lettersend/icon_sms.gif" /></li>
@@ -58,6 +60,14 @@
 								id="addFile" border="0" /></li>
 							<li><img src="././images/lettersend/icon_write.gif"  alt="새로쓰기" 
 								id="resetTextBtn" border="0" /></li>
+							<li>
+								<ul class="attach_file" >
+								<li><img id="movie_icon1"  src="././images/sms/avi_icon.gif"  alt="동영상파일1"  /></li>
+								<li><img id="image_file_icon1" src="././images/sms/imageicon.jpg"  alt="이미지파일1"  /></li>
+								<li><img id="image_file_icon2" src="././images/sms/imageicon.jpg"  alt="이미지파일2"  /></li>		
+								<li><img id="image_file_icon3" src="././images/sms/imageicon.jpg"  alt="이미지파일3"  /></li>
+								</ul>
+							</li>										
 						</ul>
 				</div>
           <!-- 전화번호 입력 박스 -->
@@ -77,8 +87,8 @@
                    <div class="list_box">
 					<c:forEach var="index"  begin="1" end="10" step="1">
                             <ul>
-                                <li><span>${index != "10"?"0":""}${index}</span><input name="recvName${index}" id="recvName${index}"  maxlength="5"  type="text" class="inp nameInp" /></li>
-                                <li><input name="recvPhone${index}" id="recvPhone${index}" type="text" class="inp" maxlength="11" value="" style="width:150px;" /></li>
+                                <li><span>${index != "10"?"0":""}${index}</span><input disabled="disabled" readonly="readonly" name="recvName${index}" id="recvName${index}"  maxlength="5"  type="text" class="inp nameInp" /></li>
+                                <li><input name="recvPhone${index}" id="recvPhone${index}" type="text" class="inp hyphen rt" maxlength="11" value="" style="width:150px;" /></li>
                                 <li class="bt"><img src="./images/sms/btn_close2.gif" alt="닫기" /></li>
                             </ul>
 					</c:forEach>
@@ -104,8 +114,8 @@
 								value="${sessionScope.phone}" style="width: 131px; margin-left: 5px;" class="inp" />
 								<label id="reserved_label">예약 :</label><input type="text" id="reserved_datetime" name="reserved_datetime"  disabled="disabled" class="inp" style="width: 115px; margin-left: 5px;font-size: 12px;"   />								
 						</div>
-						<div class="btn" ">
-							<a id="send_btn" href="#" onClick="return false">
+						<div class="btn" >
+							<a id="send_btn" href="#send_btn">
 								<img src="./images/sms/btn_send.gif" alt="보내기" />
 							</a>
 						</div>
@@ -116,7 +126,9 @@
 				<div class="tab_box">
 					<h4 class="tab01">
 						<img src="././images/lettersend/tab01_off.gif" id="myMessageBox" alt="내문자" border="0" /></a>
-						<div class="my01">내문자 영역</div>
+						<div class="my01" style="height: 250px; margin: 10px 0 10px 17px; left:0px;">
+							<iframe frameBorder="0" src="./MyMessageListAction.sm" width="700"  height="250"></iframe>						 						
+						</div>
 					</h4>
 					<h4 class="tab02">
 						<img src="././images/lettersend/tab02_on.gif"  id="specailCharBox" alt="특수문자" border="0" /></a>
@@ -129,7 +141,25 @@
         </div>
     </div>
 </div>
-
+<%--  문자 전송 폼--%>		  
+<div id="send_form_dlg" style="margin-top: 5px; vertical-align:middle;" title="파일첨부">      
+	<p style="line-height: 22px; margin-bottom: 10px" >
+		첨부파일은 이미지 100Kb(jpg형식, 176 * 144 크기) 이내<br/>
+		동영상파일은 300Kb이내로 첨부해야 합니다.<br/>
+		(동영상 첨부시 반드시 skm, k3g형식 모두 첨부)
+	</p>   
+	<form style="text-align: right;" id="send_frm"   action="./SmsSendAction.sm" method="post" enctype="multipart/form-data" >
+		<input value="" type="hidden" name="call_to_nums"  id="call_to_nums" />
+		<input value="" type="hidden" name="my_phone_num"  id="my_phone_num" />
+		<input value="" type="hidden" name="message"  id="message" />
+		<input value="" type="hidden" name="flag"  id="flag" />
+		<input value="" type="hidden" name="reserved"  id="reserved" />
+		<input value="" type="hidden" name="reserved_datetime"  id="reserved_datetime" />
+		<input id="file1" name="file1" value="" type="file" style="display: block; margin: 5px;"  />
+		<input id="file2" name="file2" value="" type="file" 	style="display: block; margin: 5px;" />
+		<input id="file3" name="file3" value="" type="file" style="display: block; margin: 5px;"	 />
+	</form>
+</div>
 <div id="send_result_dialog" style="margin-top: 5px;vertical-align:middle;" title="발송추가완료">
     <p>
         <span id="send_count"></span>건을 발송내역에 추가하였습니다.

@@ -29,10 +29,8 @@
 	                    </thead>
 	                    <tbody>
 	                    	  <tr>
-	                              <td><strong>작성자</strong> |</td>
-	                              <td style="text-align: left;">${data.registerName}</td>
-	                              <td>${data.regDate}</td>	                              
-	                              <td>| 조회 : ${data.viewCount}</td>
+	                              <td colspan="2"  style="text-align: left; padding-left: 10px;"><strong>작성자</strong> | ${data.registerName}</td>
+	                              <td colspan="2" style="text-align: right; padding-right: 10px;">${data.regDate} <strong>조회</strong> : ${data.viewCount}</td>	                              
 	                          </tr>
 	                          <tr>
 	                               <td colspan="4" class="view" height="300">
@@ -53,8 +51,8 @@
 							<c:forEach var="data"  items="${replyList}" >
 		                          <tr>
 		                                <td><img src="images/notice/icon_re.gif" /><strong> ${data.registerName}</strong></td>
-		                                <td class="tite" >${data.content}</td>
-		                                <td colspan="2" style="text-align: right;" >| ${data.regDate}</td>
+		                                <td colspan="2"  class="tite" >${data.content}</td>
+		                                <td  style="text-align: right;" >| ${data.regDate}</td>
 		                          </tr>
 							</c:forEach>		                          
 	                  </tbody>                
@@ -106,6 +104,7 @@ $(function(){
 			$("#del_form").submit();
 		}
 	});	
+	
 });	
 //-->
 </script>

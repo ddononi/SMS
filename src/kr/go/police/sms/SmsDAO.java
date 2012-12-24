@@ -196,65 +196,6 @@ public class SmsDAO extends CommonCon {
 		}
 
 	}		
-		
-	public List getPslist() throws SQLException {
-
-//		 CommonCon의 getConnection Method를 통하여, DBCP에서 커넥션을 가져온다.
-		Connection conn = dataSource.getConnection();
-
-		PreparedStatement pstmt = null;
-		ResultSet rs = null;
-		ResultSetMetaData rsmd = null;
-
-		// 리턴될 데이터 값
-		List list = new ArrayList();
-		
-		try {
-			// JDBC에 날릴 쿼리문 작성
-			StringBuffer strQuery = new StringBuffer();
-
-			strQuery.append("SELECT * FROM t_pscode ORDER BY F_PSCODE");
-			
-			// Prepared Statment를 상속받은 LoggableStatment를 통하여 ? 대신 실제 인자값을 확인할 수 있다.
-			pstmt = conn.prepareStatement(strQuery.toString() );
-
-			System.out.println( strQuery.toString() );
-			
-			// 쿼리문을 실행시키자.
-			rs = pstmt.executeQuery();
-			
-			// ResultSet Metat 데이터를 통하여, 컬럼의 갯수와, 컬럼의 이름을 가져오자.
-			rsmd = rs.getMetaData();
-
-			// 해당 Row수 만큼 루프를 돌자
-			while( rs.next() ) {
-				// 1개의 Row에 해당하는 컬럼들을 HashMap에 담을 객체
-				HashMap hm = new HashMap();
-				
-				// 컬럼의 갯수만큼 루프를 돌면서, 컬럼명과 컬럼값을 HashMap 객체에 담는다.
-				for(int i = 1 ; i <= rsmd.getColumnCount() ; i++){
-					hm.put( rsmd.getColumnName(i), rs.getString(i) );
-					System.out.println( rsmd.getColumnName(i) + "   "  +  rs.getString(i) );
-				}
-				
-				// HashMap 객체에 담아진 1개의 Row를 List 객체에 다시 추가
-				list.add(hm);
-
-			}
-					
-		}catch(Exception e ) {
-			System.out.println("getPslist() Error : " + e.getMessage() );
-		}finally {
-			// 다쓴 자원을 반환하자.
-			if( rs != null)	try { rs.close(); }catch(Exception e){}
-			if( pstmt != null) try { pstmt.close(); }catch(Exception e1){}
-			if( conn != null) try { conn.close(); } catch(Exception e2) {}
-		}
-		
-		return list;
-	}
-
-
 
 	/**
 	 *  전송 결과 내역 리스트
@@ -271,7 +212,7 @@ public class SmsDAO extends CommonCon {
 		try {
 			conn = dataSource.getConnection();
 			pstmt = conn.prepareStatement("SELECT * FROM sms_send_info WHERE" +
-					" f_callto like ? AND f_user_index = ? " +
+					" f_callto like ? AND f_user_index = ?  " +
 					" ORDER BY f_index DESC LIMIT ?, ? ");
 			pstmt.setString(1, "%" + search + "%");	
 			pstmt.setInt(2, userIndex);				
@@ -292,6 +233,7 @@ public class SmsDAO extends CommonCon {
 			    data.setRegDate(rs.getString("f_reg_date"));   
 			    data.setCallback(rs.getString("f_callback"));
 			    data.setFlag(rs.getString("f_flag"));	    
+			    data.setResultMsg(rs.getString("f_result_msg"));					    
 				list.add(data);
   			}
 			
@@ -396,8 +338,6 @@ public class SmsDAO extends CommonCon {
 			connClose();
 		}
 	}	
-	
-	
 
 	/**
 	 * 	메세지 삭제
@@ -586,8 +526,9 @@ public class SmsDAO extends CommonCon {
 			String sql;
 			for(SMSBean data : list){
 				sql = "INSERT INTO sms_send_info ( f_index, f_user_id, f_user_index, f_callto, f_callfrom, f_message, " +
-						"f_send_count, f_send_state, f_reserved, f_reserve_date, f_callback, f_nameto, f_flag, f_reg_date)" +
-						" VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, '',  ?, now()) ";
+						"f_send_count, f_send_state, f_reserved, f_reserve_date, f_callback," +
+						" f_nameto, f_flag, f_reg_date, f_result_msg, f_file1, f_file2, f_file3 )" +
+						" VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, '',  ?, now(), '전송중' , ?, ?, ?) ";
 				pstmt = conn.prepareStatement(sql);
 				pstmt.setLong(1, data.getIndex());				// 고유 시퀸스 번호				
 				pstmt.setString(2, data.getId());					// 유저 아이디
@@ -599,7 +540,10 @@ public class SmsDAO extends CommonCon {
 				pstmt.setString(8, data.isResreved()?"y":"n");	// 예약여부
 				pstmt.setString(9, data.getReserveDate());	// 예약일				
 				pstmt.setString(10, data.getCallback());			// 발송 수신 전화번호
-				pstmt.setString(11, data.getFlag());				//	전송타입			
+				pstmt.setString(11, data.getFlag());				//	전송타입	
+				pstmt.setString(12, data.getFile1());				//	파일1
+				pstmt.setString(13, data.getFile2());				//	파일2
+				pstmt.setString(14, data.getFile3());				//	파일3				
 				resultCount +=  pstmt.executeUpdate();
 			}
 			return resultCount;
@@ -626,7 +570,8 @@ public class SmsDAO extends CommonCon {
 		try {
 			conn = dataSource.getConnection();
 			pstmt = conn.prepareStatement("SELECT count(*) FROM sms_send_info WHERE" +
-					" f_user_index = ? AND f_callto like ? ORDER BY f_index DESC ");
+					" f_user_index = ? AND " +
+					" f_callto like ? ORDER BY f_index DESC ");
 			pstmt.setInt(1, userIndex);	
 			pstmt.setString(2, "%" + search + "%");				
 			rs = pstmt.executeQuery();
@@ -648,20 +593,25 @@ public class SmsDAO extends CommonCon {
 	 * 		검색어
 	 * @param type
 	 * 		검색 종류
+	 * @param psCode 
+	 * 		경찰서 코드
 	 * @return
 	 */
-	public int getReserveListCount(String search, String type) {
+	public int getReserveListCount(String search, String type, int psCode) {
 		int result = 0;
 		try {
+			conn = dataSource.getConnection();			
 			String sql = "SELECT count(*) FROM sms_send_info WHERE  " +
 					" f_reserved = 'y' AND f_reserve_date > NOW() AND ";
-			conn = dataSource.getConnection();
 			if(type.equalsIgnoreCase("from")){	// 보낸전화번호로 검색
 				sql += "  f_user_id like ? ";
 			}else if(type.equalsIgnoreCase("message")){		// 메세지로 검색
 				sql += " f_message like ? ";
 			}else{			// 받는 전화번호로 검색
 				sql += " f_callto like ? ";
+			}
+			if(psCode != 100){
+				sql += " AND f_pscode = " + psCode;
 			}
 			pstmt = conn.prepareStatement(sql +" ORDER BY f_index DESC ");
 			pstmt.setString(1, "%" + search + "%");				
@@ -687,9 +637,11 @@ public class SmsDAO extends CommonCon {
 	 * 		검색어
 	 * @param type
 	 *		검색 종류
+	 * @param psCode 
+	 * 		경찰서 코드
 	 * @return
 	 */
-	public List<SMSBean> getReserveList(int start, int end, String search, String type) {
+	public List<SMSBean> getReserveList(int start, int end, String search, String type, int psCode) {
 		List<SMSBean> list = new ArrayList<SMSBean>();
 		SMSBean data = null;		
 		try {
@@ -704,13 +656,16 @@ public class SmsDAO extends CommonCon {
 				sql += " f_callto like ? ";		
 			}
 			
+			if(psCode != 100){
+				sql += " AND f_pscode = " + psCode;
+			}
+			
 			sql += " ORDER BY f_index DESC LIMIT ?, ? ";
 			pstmt = conn.prepareStatement(sql);
 			pstmt.setString(1, "%" + search + "%");							
 			pstmt.setInt(2, start -1);
 			pstmt.setInt(3, end);				
 			rs = pstmt.executeQuery();
-			Aria aria = Aria.getInstance();	
 			while(rs.next())	{
 				// 문자 내역을 담는다.
 			    data = new SMSBean();	
@@ -723,6 +678,7 @@ public class SmsDAO extends CommonCon {
 			    data.setRequestResult(rs.getInt("f_request_result_code"));
 			    data.setResponseResult(rs.getInt("f_response_result_code"));		
 			    data.setFlag(rs.getString("f_flag").equalsIgnoreCase("s")?"SMS":"MMS");
+			    data.setReserveDate(rs.getString("f_reserve_date"));			    
 			    data.setRegDate(rs.getString("f_reg_date"));   
 			    data.setCallback(rs.getString("f_callback"));
 			    
@@ -773,23 +729,27 @@ public class SmsDAO extends CommonCon {
 	 * 		검색어
 	 * @param type
 	 * 		검색종류
+	 * @param psCode 
 	 * @return
 	 */
-	public List<SMSBean> getSendList(int start, int end, String search, String type) {
+	public List<SMSBean> getSendList(int start, int end, String search, String type, int psCode) {
 		List<SMSBean> list = new ArrayList<SMSBean>();
 		SMSBean data = null;		
 		try {
 			conn = dataSource.getConnection();
-			String sql = "SELECT * FROM sms_send_info WHERE  f_send_state = 1 AND ";
-			conn = dataSource.getConnection();
+			String sql = "SELECT * FROM sms_send_info WHERE  f_send_state <> 0 AND ";
 			if(type.equalsIgnoreCase("from")){	// 보낸전화번호로 검색
 				sql += "  f_user_id like ? ";
 			}else if(type.equalsIgnoreCase("message")){		// 메세지로 검색
 				sql += " f_message like ? ";
 			}else{			// 받는 전화번호로 검색
 				sql += " f_callto like ? ";
-			}			
-			sql += " ORDER BY f_index DESC LIMIT ?, ? ";
+			}		
+			
+			if(psCode != 100){
+				sql += " AND f_pscode = " + psCode;
+			}		
+			sql +=  " ORDER BY f_index DESC LIMIT ?, ? ";
 			
 			pstmt = conn.prepareStatement(sql);		
 			pstmt.setString(1, "%" + search + "%");	
@@ -811,6 +771,7 @@ public class SmsDAO extends CommonCon {
 			    data.setFlag(rs.getString("f_flag").equalsIgnoreCase("s")?"SMS":"MMS");
 			    data.setRegDate(rs.getString("f_reg_date"));   
 			    data.setCallback(rs.getString("f_callback"));
+			    data.setResultMsg(rs.getString("f_result_msg"));			    
 				list.add(data);
 			}
 			
@@ -830,14 +791,14 @@ public class SmsDAO extends CommonCon {
 	 * 		검색어
 	 * @param type
 	 * 		검색종류
+	 * @param psCode 
 	 * @return
 	 */
-	public int getSendListCount(String search, String type) {
+	public int getSendListCount(String search, String type, int psCode) {
 		int result = 0;
 		try {
 			conn = dataSource.getConnection();
-			String sql = "SELECT count(*) FROM sms_send_info WHERE  f_send_state = 1 AND ";
-			conn = dataSource.getConnection();
+			String sql = "SELECT count(*) FROM sms_send_info WHERE  f_send_state <> 0 AND ";
 			if(type.equalsIgnoreCase("from")){	// 보낸전화번호로 검색
 				sql += "  f_user_id like ? ";
 			}else if(type.equalsIgnoreCase("message")){		// 메세지로 검색
@@ -845,6 +806,9 @@ public class SmsDAO extends CommonCon {
 			}else{			// 받는 전화번호로 검색
 				sql += " f_callto like ? ";
 			}
+			if(psCode != 100){
+				sql += " AND f_pscode = " + psCode;
+			}	
 			pstmt = conn.prepareStatement(sql +" ORDER BY f_index DESC ");			
 			pstmt.setString(1, "%" + search + "%");
 			rs = pstmt.executeQuery();
@@ -875,7 +839,6 @@ public class SmsDAO extends CommonCon {
 			String sql = "SELECT count(*) FROM sms_send_info " +
 					" WHERE  f_user_index = ? AND" +
 					" f_reserved = 'y' AND f_reserve_date > now() AND ";
-			conn = dataSource.getConnection();
 			if(type.equalsIgnoreCase("from")){	// 메세지로 검색
 				sql += "  f_message like ? ";
 			}else if(type.equalsIgnoreCase("message")){		// 받는 전화번호로 검색
@@ -917,7 +880,6 @@ public class SmsDAO extends CommonCon {
 			String sql = "SELECT * FROM sms_send_info " +
 					" WHERE  f_user_index = ? AND" +
 					" f_reserved = 'y' AND f_reserve_date > now() AND ";
-			conn = dataSource.getConnection();
 			if(type.equalsIgnoreCase("from")){	// 메세지로 검색
 				sql += "  f_message like ? ";
 			}else if(type.equalsIgnoreCase("message")){		// 받는 전화번호로 검색
@@ -930,7 +892,6 @@ public class SmsDAO extends CommonCon {
 			pstmt.setInt(3, start -1);
 			pstmt.setInt(4, end);				
 			rs = pstmt.executeQuery();
-			Aria aria = Aria.getInstance();	
 			while(rs.next())	{
 				// 문자 내역을 담는다.
 			    data = new SMSBean();	
@@ -960,7 +921,6 @@ public class SmsDAO extends CommonCon {
 		}
 	}	
 	
-	
 	/**
 	 * 선택 유저 발송 내역 갯수 
 	 * @param userIndex
@@ -975,8 +935,7 @@ public class SmsDAO extends CommonCon {
 			conn = dataSource.getConnection();
 			String sql = "SELECT count(*) FROM sms_send_info " +
 					" WHERE  f_user_index = ? AND" +
-					" f_send_state = 1 AND ";
-			conn = dataSource.getConnection();
+					" f_send_state <> 0 AND ";
 			if(type.equalsIgnoreCase("message")){	// 메세지로 검색
 				sql += "  f_message like ? ";
 			}else if(type.equalsIgnoreCase("to")){		// 받는 전화번호로 검색
@@ -1014,11 +973,11 @@ public class SmsDAO extends CommonCon {
 		List<SMSBean> list = new ArrayList<SMSBean>();
 		SMSBean data = null;		
 		try {
+			
 			conn = dataSource.getConnection();
 			String sql = "SELECT * FROM sms_send_info " +
 					" WHERE  f_user_index = ? AND" +
-					"  f_send_state = 1 AND ";
-			conn = dataSource.getConnection();
+					"  f_send_state <> 0 AND ";
 			if(type.equalsIgnoreCase("message")){	// 메세지로 검색
 				sql += "  f_message like ? ";
 			}else if(type.equalsIgnoreCase("to")){		// 받는 전화번호로 검색
@@ -1031,7 +990,6 @@ public class SmsDAO extends CommonCon {
 			pstmt.setInt(3, start -1);
 			pstmt.setInt(4, end);				
 			rs = pstmt.executeQuery();
-			Aria aria = Aria.getInstance();	
 			while(rs.next())	{
 				// 문자 내역을 담는다.
 			    data = new SMSBean();	
@@ -1046,7 +1004,7 @@ public class SmsDAO extends CommonCon {
 			    data.setFlag(rs.getString("f_flag").equalsIgnoreCase("s")?"SMS":"MMS");			    
 			    data.setRegDate(rs.getString("f_reg_date"));   
 			    data.setCallback(rs.getString("f_callback"));
-			    
+			    data.setResultMsg(rs.getString("f_result_msg"));
 				list.add(data);
   			}
 			
@@ -1058,6 +1016,64 @@ public class SmsDAO extends CommonCon {
 		}finally{
 			connClose();
 		}
-	}		
+	}
+
 	
+	public List<Message> getMessagesList(int userIndex, int groupIndex, int start, int end) {
+		List<Message> list = new ArrayList<Message>();
+		Message data = null;		
+		try {
+			conn = dataSource.getConnection();
+			pstmt = conn.prepareStatement("SELECT * FROM message WHERE" +
+					" f_user_index =?  AND f_group_index = ? ORDER BY f_index DESC LIMIT ?, ?");
+			pstmt.setInt(1, userIndex);
+			pstmt.setInt(2, groupIndex);
+			pstmt.setInt(3, start-1);
+			pstmt.setInt(4, end);
+			rs = pstmt.executeQuery();
+			
+			while(rs.next())	{
+				// 인덱스, 등록아이디, 제목, 내용, 그룹인덱스, 그룹명
+			    data = new Message();	
+			    data.setIndex(rs.getInt("f_index"));
+			    data.setId(rs.getString("f_id"));	  		
+			    data.setTitle(rs.getString("f_message_title"));			    
+			    data.setMessage(rs.getString("f_message_text"));
+			    data.setGroupIndex(rs.getInt("f_group_index"));
+			    data.setGroup(rs.getString("f_message_group"));
+	
+				list.add(data);
+			}		
+			return list;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("getMyMessages 에러 : " + e.getMessage());
+			return null;
+		}finally{
+			connClose();
+		}
+	}
+
+	
+	public int getMessageListCount(int groupIndex) {
+		int result = 0;
+		try {
+			conn = dataSource.getConnection();					
+			String sql = "SELECT count(*) FROM message WHERE  " +
+					" f_group_index = ? ";
+			pstmt = conn.prepareStatement(sql +" ORDER BY f_index DESC ");
+			pstmt.setInt(1, groupIndex);				
+			rs = pstmt.executeQuery();
+			if(rs.next()){
+				result =  rs.getInt(1);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("getReserveListCount 에러 : " + e.getMessage());
+		}finally{
+			connClose();
+		}
+		return result;
+	}
+
 }

@@ -54,6 +54,11 @@ public class AddressFrontcontrollerFilter implements Filter {
 			return;
 		}
 		
+		// 중복 접속을 막기 위한 세션아이디값 비교 
+		if(!LoginCheck.sessionIdCheck(request, response)){
+			return;
+		}			
+		
 		chain.doFilter(request, response);
 	}
 

@@ -7,6 +7,7 @@ var phoneReg =  /^01([0|1|6|7|8|9]?)-?([0-9]{3,4})-?([0-9]{4})$/;	// 핸드폰 정규
 // 폼 정규식 및 메세지 관련
 jQuery.phone = {
 	smsMode : true,	// sms 모드인지		
+	hasFile : false,		// 파일 첨부 여부
 	/*
  	 *	엔터값 체크
 	 */
@@ -39,7 +40,7 @@ jQuery.phone = {
 		var l = 0;
 
 		// sms 모드이면
-		if($.phone.smsMode){
+		if($.phone.smsMode && !$.phone.hasFile){
 			if ( encodedStr > 80) {
 				if(event.keyCode == 8 || event.keyCode ==46){
 					return false;
@@ -50,15 +51,18 @@ jQuery.phone = {
 	                if (l > 80){
 	                	// sms 모드일경우 mms 모드로 전환한다.
 	                	if($.phone.smsMode){
-			                alert( "80자 이상 입력시 MMS로 변환 됩니다..");
-			               //$("#sms_sep_icon").attr("src", "./images/lettersend/icon_mms.gif");
+	    	                $("#sms_sep_icon").attr("src", "./images/lettersend/icon_mms.gif");
 		                	$.phone.smsMode = false;
-			                 that.val( buf.substring(0,80) );
-			                 $("[name='send_type']").first().removeAttr('checked');		                 
-			                 $("[name='send_type']").last().attr('checked', 'chekced');			                
+	    	                $("[name='send_type']").first().removeAttr('checked')
+	    	                	.andSelf().last().attr('checked', 'chekced');			                	
 	                	}
 	                }else{
-	                	$.phone.smsMode = true;
+	                	if(!$.phone.smsMode){
+		                	$.phone.smsMode = true;
+	    	                $("#sms_sep_icon").attr("src", "./images/lettersend/icon_sms.gif");
+	    	                $("[name='send_type']").last().removeAttr('checked')
+	    	                	.andSelf().first().attr('checked', 'chekced');	
+	                	}
 	                }
 		        }
 			}else{
@@ -66,6 +70,13 @@ jQuery.phone = {
 			}
 		// mms 모드이면	
 		}else{
+            if (encodedStr > 2000){
+            	$.phone.smsMode = false;
+                alert( "더이상 입력할수 없습니다.");
+                that.val(  stringCut2(buf, 2000) );
+                return false;
+            }		
+            
 			if ( encodedStr > 2000) {
 				if(event.keyCode == 8 || event.keyCode ==46){
 					return false;
@@ -77,16 +88,17 @@ jQuery.phone = {
 	                if (l > 2000){
 	                	$.phone.smsMode = false;
 		                alert( "더이상 입력할수 없습니다.");
-		                that.val( buf.substring(0,2000) );
-		                // return false;
+		                that.val( stringCut2(buf, 2000) );
+		                return false;
 	                }
 		        }				
 		        
-		        if(l < 80){	// 80Byte 이하이면
-	                alert( "SMS 모드로 변환 됩니다..");
-                	$.phone.smsMode = true;		   
-	                 $("[name='send_type']").last().removeAttr('checked');		                 
-	                 $("[name='send_type']").first().attr('checked', 'chekced');		                	
+            	
+		        if(!$.phone.hasFile && l <= 80){	// 80Byte 이하이면
+                	$.phone.smsMode = true;				        	
+	                $("#sms_sep_icon").attr("src", "./images/lettersend/icon_sms.gif");
+	                $("[name='send_type']").last().removeAttr('checked')
+                		.andSelf().first().attr('checked', 'chekced');	          	
                 }
 		        
 				textThat.text( encodedStr + "/2000Bytes" );
@@ -159,80 +171,41 @@ jQuery.phone = {
 		}
 
 		//$.phone.doNotDuplicate();
-		if( $.phone.check() == true  ){
-				// 즉시 전송
-			$.phone.doNotDuplicate();	// 같은 전화번호 제거 처리
-			// 받는 사람 전화번호를 넣어준다.
-			$("#call_to_nums").val(phoneNumbers.join(","));
-			if( $("#reservationTime span").text() == "" ){
-				$("#f_reserve_date").val( $.date.getNow() ); 
-				$("#f_reserve_time").val( $.date.getTime() ); 
-			}else{
-				// 예약 전송시 형식에 맞게 문자를 자른후 날짜 전송값에 넣어줌
-				var str = $("#reservationTime span").text();
-				var date = str.substring(0,4)+ str.substring(5,7) + str.substring(8,10);
-				var time = str.substring(12,14)+ str.substring(15,17);
-				$("#f_reserve_date").val( date ); 
-				$("#f_reserve_time").val( time );
-			}
-			
-			// ajax 발송 데이터
-			var data = {
-					call_to_nums : phoneNumbers.join(","),						// 받는 전화번호들(콤마로 연결)
-					message : $("#message").val(),									// 메세지
-					my_phone_num :  $("#my_phone_num").val(),				// 내 전화번호
-					callback : $("#callback").val(),										// 내 발송 수신할 번호
-					send_type : $("[name='send_type']:checked").val(),			// 전송 타입
-					reserved : $("#reserved_datetime").val().length>0?"true":"false",		// 	예약 여부
-					reserved_datetime : $("#reserved_datetime").val()			// 	예약 날짜
-					//reserve_date : $("#f_reserve_date").val(),
-					//reserve_time : $("#f_reserve_time").val(),
-					//send_state : $("#f_send_state").val(),
-					//deptcode:  "", //$("#f_deptcode").val(),					
-			};
-			
-			/*
-			 *	ajax 로 sms 발송처리
-			 */			
-			if( confirm("문자메세지를 발송 하시겠습니까?") == true){
-				var str = (senderCount == 1)?(firstSender + "에게 문자 발송"):
-											(firstSender + "외 " + (senderCount-1) + "명 문자 발송");
-				
-				// ajax 로 문자 발송 내역 처리
-				$.post("./SmsSendAction.sm", data, function(result){
-					var sendCount = parseInt($.trim(result));
-					if( sendCount > 0 ){
-						$("#send_count").text(sendCount);
-						$("#send_result_dialog").dialog({
-					            modal: true,
-					            width: 350,
-					            buttons: {
-					                "전송내역이동" : function() {
-					                    $( this ).dialog( "close" );
-					                    window.location.href = "./SmsSendResultAction.sm";
-					                },
-					                "다시보내기" : function() {
-					                    $( this ).dialog( "close" );
-					                },					                
-					                /*
-					                "문자함저장" : function() {
-					                    $( this ).dialog( "close" );
-					                },
-					                */					                
-					                "확인" : function() {
-					                    $( this ).dialog( "close" );
-					                    //  문자내용 및 전화번호 리셋
-					                    $("#message, .list_box .inp").val("");
-					                },
-					                
-					            }
-					    });
-					}else{
-						alert($.trim(result));
-					}
-				});
-			}
+		if( $.phone.check() != true  ){
+			return false;
 		}
+			// 즉시 전송
+		$.phone.doNotDuplicate();	// 같은 전화번호 제거 처리
+		// 받는 사람 전화번호를 넣어준다.
+		$("#call_to_nums").val(phoneNumbers.join(","));
+		if( $("#reservationTime span").text() == "" ){
+			$("#f_reserve_date").val( $.date.getNow() ); 
+			$("#f_reserve_time").val( $.date.getTime() ); 
+		}else{
+			// 예약 전송시 형식에 맞게 문자를 자른후 날짜 전송값에 넣어줌
+			var str = $("#reservationTime span").text();
+			var date = str.substring(0,4)+ str.substring(5,7) + str.substring(8,10);
+			var time = str.substring(12,14)+ str.substring(15,17);
+			$("#f_reserve_date").val( date ); 
+			$("#f_reserve_time").val( time );
+		}
+
+		// 문자 발송 전송 폼
+		$("#send_frm #call_to_nums").val(phoneNumbers.join(","));		// 받는 전화번호들(콤마로 연결)
+		$("#send_frm #message").val($("#message").val());				// 메세지
+		$("#send_frm #my_phone_num").val($("#my_phone_num").val());			// 내 전화번호
+		$("#send_frm #flag").val($("[name='send_type']:checked").val());		// 전송 타입
+		$("#send_frm #reserved").val($("#reserved_datetime").val().length>0?"true":"false");		// 	예약 여부
+		$("#send_frm #reserved_datetime").val($("#reserved_datetime").val());			// 	예약 날짜
+		/*
+		 *	ajax 로 sms 발송처리
+		 */			
+		if( confirm("문자메세지를 발송 하시겠습니까?") != true){
+			return false;
+		}
+		// 문자 발송
+		$("#send_frm").submit();
+		
 	},
 	/*
 	 * 입력된 전화번호 체크
@@ -361,7 +334,7 @@ jQuery.phone = {
                 <li><input name="recvPhone1" id="recvPhone1" type="text" class="inp" value="" style="width:150px;" /></li>
                 <li class="bt"><img src="./images/sms/btn_close2.gif" alt="닫기" /></li>
                 */
-				html = "<li><span>" + count + "</span><input name='recvName"+ count + "' id='recvName"+ count + "' type=text' class='inp'>"
+				html = "<li><span>" + count + "</span><input readonly='readonly' name='recvName"+ count + "' id='recvName"+ count + "' type=text' class='inp'>"
 								+ "<li><input name='recvPhone" + count + "' id='recvPhone" + count + "' type='Text' class='inp'></li>"
 								+ "<li class='bt'><img src='./images/sms/btn_close2.gif' alt='닫기'></li>";
 			 
@@ -501,11 +474,49 @@ var sec = 500;
 var NumericKeyPadFlag = false;	// 키패드 flag
 var currentPhoneInput = null;	// 현재 input  객체값
 $(document).ready(function(){
+	
+    //  파일 첨부 다이얼로그 설정
+	$( "#send_form_dlg" ).dialog({
+            autoOpen: false,
+            modal: true,
+            width : 400,
+            height : 300,
+            buttons: {
+            	// 주소록 추가 처리
+                "확인": function() {
+                	 $( this ).dialog( "close" );
+                	 // 문자입력창에 포커스
+                	 var $message =$("textarea#message");
+                	 $message.focus();  
+             		 var len = $message.val().length;
+             		 setSelectionRange($message[0], len, len);             		
+                },
+                "삭제": function() {
+                	// 파일를 제거 한후 다시 생성한다.
+                    $("[type='file']" ).each(function(index){
+                    	index += 1;
+                    	var html ='<input id="file' +index + '" name="file' +index +
+                    	'" value="" type="file" style="display: block; margin: 5px;"  />';
+                    	$("#file" +index).remove();
+                    	$("#send_frm").append(html);
+                    });
+                    $( this ).dialog( "close" );
+               	 	// 문자입력창에 포커스
+                    var $message =$("textarea#message");
+               	 	$message.focus();  
+            		 var len = $message.val().length;
+            		 setSelectionRange($message[0], len, len);                        
+                }
+            }
+    });     
+	
 
 	/*
 	 *	숫자만 입력 허용-- 전화번호 입력란만 설정
 	 */
-	$("#pone_list ul li input:odd").inputNumber();
+	$("#pone_list ul li input:odd").inputNumber().live('focusout', function(){
+		$(this).addHyphen();
+	});
 
 	/*
 	 *	초기 메시지란에는 메세지 notice정보가 입력 되어있기 때문에 
@@ -519,13 +530,19 @@ $(document).ready(function(){
 	
 	$("#resetTextBtn").click(function(){ // 다시 쓰기 버튼
 		$("#message").val("");
+		$("#send_frm")[0].reset();
+		// sms 모드로 변경
+		$.phone.hasFile = false;
+    	$.phone.smsMode = true;		
+        $("#sms_sep_icon").attr("src", "./images/lettersend/icon_sms.gif");
+        $("[name='send_type']").last().removeAttr('checked').andSelf().first().attr('checked', 'chekced');				
 		$("#textByte").text("0/80Bytes");
 		return false;
 	});
 
-	$("#message").keydown(function(e) { // 메세지 키 입력시 마다 키값 체크
+	$("#message").bind('keypress keydown keyup change focus', function(e) { // 메세지 키 입력시 마다 키값 체크
 		isDefault = false;
-		$.phone.checkLength(e);
+		$.phone.checkLength(e);		
 	});	
 
 	$("#reserveBtn").click(function(){ //예약 버튼 클릭시 예약창 modal
@@ -540,15 +557,14 @@ $(document).ready(function(){
 	$("#listPlus").click(function(){
 		var index = $("#pone_list ul").size();
 
-		var html = "<ul><li><span>" + (++index) + "</span><input name='recvName"+ index + "' id='recvName"+ index + "' type=text' class='inp'>"
-					+ " <li><input name='recvPhone" + index + "' id='recvPhone" + index + "' type='Text' class='inp' style=\"width:150px;\"></li>"
+		var html = "<ul><li><span>" + (++index) + "</span><input disabled='disabled' readonly='readonly' name='recvName"+ index + "' id='recvName"+ index + "' type=text' class='inp'>"
+					+ " <li><input name='recvPhone" + index + "' id='recvPhone" + index + "' type='Text' class='inp hyphen rt' style=\"width:150px;\"></li>"
 					+ " <li class='bt'><img src='./images/sms/btn_close2.gif' alt='닫기'></li></ul>";
 			 
 	   $("#pone_list ul:last").after(html);
 		var $lastInput = $("#recvPhone" + index);
-		$lastInput.focus();				
+		$lastInput.inputNumber().focus();				
 		currentPhoneInput = $lastInput;
-
 	});
 
 
@@ -705,12 +721,10 @@ $(document).ready(function(){
      * 내 문자 혹은 특수 문자 영역 선택처리
      */
     $("#myMessageBox").click(function(){
-    	/*
     	$(this).attr("src", "./images/lettersend/tab01_on.gif");
     	$("#specailCharBox").attr("src", "./images/lettersend/tab02_off.gif");    	
     	$(".my02").hide();    	
     	$(".my01").show();
-    	*/
     });
     
     // sms mode or mms mode 전환
@@ -749,6 +763,7 @@ $(document).ready(function(){
 		hourText : "시",
 		minuteText : "분",
 		timeText : "시간",
+		gotoCurrent: true,		
 		beforeShow : function(){
 			$("#toolbar").css("visibility", "hidden");
 			$("#reserved_datetime").val("");
@@ -756,13 +771,22 @@ $(document).ready(function(){
 		},
 		onClose : function(dateText, inst ){
 			$("#toolbar").css("visibility", "visible");
-			if(dateText.length <=0){
+			if($(this).val().length > 0){
+				// 예약시간과 현재시간을 비교하여 시간이 작으면 넘겨준다.
+				var reserveDate = parseInt(($(this).val() +"00").replace(/[^0-9]/gi, ""));
+				var currentDate =  parseInt(getTimeStamp().replace(/[^0-9]/gi, ""));
+				if(currentDate > reserveDate){
+					alert(reserveDate);
+					alert(currentDate);
+					alert("예약시간은 현재시간보다 커야 합니다.");
+					$(this).val("");
+				}
 				//$("#reserved_datetime,  #reserved_label").hide();
 				
 			}
 		},
 		onSelect : function(){
-		//	$("#reserved_datetime").val();
+
 		}
 	});
 	/*
@@ -770,16 +794,195 @@ $(document).ready(function(){
 	 * 우측 특수문자들 모음 기본 인덱스는 첫번째로 함
 	 */
 	$.html.character(0);
-	/*
-	setTimeout(function(){ // 스크립트 분할 로드
-		$.html.messages("public", "all");	// 지연 스크립트-1 ( 공통 메시지  )
-		setTimeout(function(){
-			$('#dateTimePicker').load("./ajax/calendar/calendar.html", function(){// 지연 스크립트-2
-				Defaults();
-				setTimeout(function(){ $('.miniload').hide() }, 50);
-			});
-		},50);
-	},50);
-	*/
 	
+	// 파일 첨부 처리
+	$("#addFile").click(function(){
+		$( "#send_form_dlg" ).dialog("open");
+	});
+	
+	// 첨부파일 여부에 따라 아이콘 노출
+	$("#file1, #file2, #file3").bind('change', function(){
+		var $this = $(this);
+		if($this.val().length <= 0){
+			return;
+		}
+		// 파일 확장자 체크
+		var ext = $this.val().substr( $this.val().lastIndexOf(".") + 1, 3).toLowerCase();
+		if(ext  != "skm" && ext  != "k3g" && ext  != "jpg" && ext  != "jpeg" && ext  != "sis" ){
+			alert("파일 형식이 올바르지 않습니다.");
+        	var file_id = $this.attr('id') ;
+        	var html ='<input id="' + file_id + '" name="' +file_id +
+        	'" value="" type="file" style="display: block; margin: 5px;"  />';
+        	$this.remove();
+        	$("#send_frm").append(html);			
+			return;
+		}
+		
+		$.phone.hasFile = true;
+    	$.phone.smsMode = false;		
+        $("#sms_sep_icon").attr("src", "./images/lettersend/icon_mms.gif");
+        $("[name='send_type']").first().removeAttr('checked');		                 
+        $("[name='send_type']").last().attr('checked', 'chekced');					
+		/*
+		if( $this.attr("id") == 'file1' ){
+			// 동영상 파일이면
+			if(ext  == "skm" || ext  == "k3g"){
+				$("#movie_icon1").show();
+			}else{
+				$("#image_file_icon1").show();
+			}
+		}else if( $this.attr("id") == 'file2' ){
+			if(ext  == "skm" || ext  == "k3g"){
+				$("#movie_icon1").show();
+			}else{
+				$("#image_file_icon2").show();
+			}
+		}else if( $this.attr("id") == 'file3'){
+			if(ext  == "skm" || ext  == "k3g"){
+				$("#movie_icon1").show();
+			}else{
+				$("#image_file_icon3").show();
+			}
+		}	
+		*/	
+	});
 });
+
+/*******************************************************************************
+* 바이트 체크 80bytes 
+*******************************************************************************/
+function checkBytes2(max_length)
+{
+	var page = 0;
+	var body_length = 0;
+	var msgVal = $("#message").val();
+	var $textByte = $("#textByte");
+	if(max_length>80)
+	{
+		body_length = getLength2(msgVal);
+	}
+	else
+	{
+		body_length = getLength(msgVal);
+	}
+	
+	if(body_length > max_length)
+	{
+		alert(max_length + "bytes 이상 입력할 수 없습니다.");
+		$("#message").val(stringCut(msgVal, max_length));
+
+		if(max_length>80)
+		{
+			body_length = getLength2(msgVal);
+		}
+		else
+		{
+			body_length = getLength(msgVal);
+		}
+	}
+
+	if(body_length)
+		page = parseInt(body_length / 80);
+
+	if(body_length % 80)
+		page += 1;
+
+	/*
+	if(typeof(form.page) != "undefined")
+		form.page.value = page;
+	 */
+	
+	$textByte.val(body_length);
+}
+
+/*******************************************************************************
+* 문자열자르기
+*******************************************************************************/
+
+function stringCut2(str, MAX_LEN)
+{
+	var len = 0;
+	var temp;
+	var count = 0;
+	len = str.length;
+	for (var k=0 ; k<len ; k++)
+	{
+		temp = str.charAt(k);
+	
+		if (escape(temp).length > 4) {
+			count += 2;
+		}
+		else
+			if(escape(temp) != "%0D")
+				count++;
+
+		if(count > MAX_LEN)
+		{
+			if(escape(temp) == "%0A")
+				k--;
+			break;
+		}
+		
+		
+	}
+	
+	return str.substring(0, k);
+}
+
+/*******************************************************************************
+* 문자열 길이를 리턴한다. 
+*******************************************************************************/
+function getLength(str) 
+{
+	var length = 0;
+
+	for(var i = 0; i < str.length; i++)
+	{
+		if(escape(str.charAt(i)).length >= 4 || escape(str.charAt(i)) == "%A7"){
+			//한글의 경우 79 byte에서 입력되면 length ++ add by ljj -2009-03-11
+			legnth2=length+1;
+			if(legnth2 % 80==0)
+			{
+				length++;
+			}
+			length += 2;
+		}else{
+			if(escape(str.charAt(i)) != "%0D"){
+				length++;
+			}
+		}
+
+		/*
+		if(escape(str.charAt(i)).length >= 4)
+			length += 2;
+		else if(escape(str.charAt(i)) == "%A7")
+			length += 2;
+		else
+			if(escape(str.charAt(i)) != "%0D")
+				length++;
+		*/
+	}	
+
+	return length;
+}
+
+/*******************************************************************************
+* 1000자 이용자를 위한 문자열 길이를 리턴한다.
+*******************************************************************************/
+function getLength2(str) 
+{
+	var length = 0;
+
+	for(var i = 0; i < str.length; i++)
+	{
+
+		if(escape(str.charAt(i)).length >= 4)
+			length += 2;
+		else if(escape(str.charAt(i)) == "%A7")
+			length += 2;
+		else
+			if(escape(str.charAt(i)) != "%0D")
+				length++;
+	}
+	return length;
+}

@@ -1,5 +1,6 @@
 package kr.go.police.account;
 
+
 /**
  *	유저 정보 bean
  */
@@ -13,7 +14,6 @@ public class UserBean {
 	private String phone1; // 휴대폰 번호
 	private String phone2;
 	private String deptName; // 부서명
-	private int deptCode; // 부서코드
 	private String tel; // 전화번호
 	private String email; // 이메일
 	private boolean approve; // 승인여부
@@ -23,6 +23,10 @@ public class UserBean {
 	private int monthSend; // 월 발송 횟수
 	private int userClass;	// 사용자 등급
 	private String visitDate;	//  접속날짜
+	private int psCode;			// 경찰서코드
+	private int deptCode;		// 부서코드
+	private String pwdreset;  //패스워드 변경날짜
+	
 	
 	public int getIndex() {
 		return index;
@@ -206,5 +210,23 @@ public class UserBean {
 	public void setVisitDate(String visitDate) {
 		this.visitDate = visitDate;
 	}
+
+	public int getPsCode() {
+		return psCode;
+	}
+
+	public void setPsCode(int psCode) {
+		this.psCode = psCode;
+	}
+
+	public String getPwdreset() {
+		return pwdreset;
+	}
+
+	public void setPwdreset(String pwdreset) {
+		this.pwdreset = pwdreset.substring(0, 10);
+	}
+	
+	
 	
 }

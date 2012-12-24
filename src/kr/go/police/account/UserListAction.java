@@ -46,13 +46,17 @@ public class UserListAction implements Action {
 			groupIndex = Integer.valueOf(groupIndexStr);
 		}
 		
-		int start = (page -1 ) * limit +1;				// 시작 번호
-		int listSize = dao.getUserListCount();		// 유저 수
+		// 경찰서 코드가져오기
+		HttpSession session = request.getSession();
+		int psCode =  (Integer)session.getAttribute("psCode");
+		
+		int start = (page -1 ) * limit +1;							// 시작 번호
+		int listSize = dao.getUserListCount(psCode);		// 유저 수
 		//	리스트 번호
 		int no = listSize - (page - 1) * limit;		
 		// 페이지 네이션 처리
-		String pagiNation = SMSUtil.makePagiNation(listSize, page, limit, "UserListAction.ac", null);  
-		ArrayList<UserBean> list = (ArrayList<UserBean>)dao.getUserList("", start, limit);
+		String pagiNation = SMSUtil.makePagiNation(listSize, page, limit, "UserListAction.ac", null);
+		ArrayList<UserBean> list = (ArrayList<UserBean>)dao.getUserList("", start, limit, psCode);
 		
 		request.setAttribute("no", no);									// 리스트 번호		
 		request.setAttribute("listSize", listSize);						// 총  주소록그룹 갯수

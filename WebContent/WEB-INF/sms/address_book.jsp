@@ -24,9 +24,8 @@
 <script type="text/javascript" src="./js/plug-in/jquery.tablesorter.min.js"></script>
 <script type="text/javascript" src="./js/plug-in/fileTree/jquery.easyui.min.js"></script>
 <script type="text/javascript" src="./js/plug-in/jquery-tools-1.2.4.min.js"></script>
-
 <style>
-img{vertical-align:middle;margin:0;padding:0;}
+img{vertical-align:middle;margin:0;padding:0; border: none;}
 .myTabs{list-style:none;height:30px;border-bottom:1px solid #666;margin:0 !important;padding:0;}
 .myTabs li{float:left;font-weight:700;text-indent:0;list-style-image:none !important;margin:0 !important;padding:0;}
 .myTabs a{background:url(./images/sms/tabs.png) no-repeat -652px 0;font-size:11px;display:block;height:30px;line-height:30px;width:111px;text-align:center;text-decoration:none;color:#000;position:relative;top:1px;margin:0;padding:0;}
@@ -79,6 +78,7 @@ iframe{width:100%;height:100%;}
 #addressList{background-color:#fff;}
 #selectedTbl a:LINK,a:VISITED{color:#333;text-decoration:none;}
 #selectedTbl a:HOVER{color:#00b5f5;}
+#allBtn{border: none;}
 </style>
 <script> 
 jQuery.js = {
@@ -151,7 +151,7 @@ jQuery.js = {
 
 		$("#selectedTbl input:checked").each(function(i){
 			// 전화번호 리스트 사이즈 알아오기
-			var  wListSize = window.parent.opener.$("#pone_list li").size();
+			var  wListSize = window.parent.opener.$("#pone_list ul").size();
 			dupleFlag = false;	// 중복체크			
 			name =  $(this).parents("tr").children("td:eq(1)").text();	// 이름 얻어오기
 			phone =  $(this).parents("tr").children("td:eq(2)").text(); // 전화번호 얻어오기
@@ -164,24 +164,25 @@ jQuery.js = {
 			});	
 			index = index + 1;	
 			if( dupleFlag != true ){	// 중복이 안된 전화번호 일경우만
-				if( index < wListSize ){
-					for(var i=index; i==wListSize; i++){
+				if( index <= wListSize ){
+					for(var i=index; i<=wListSize; i++){
 						// 비어있을 경우 해당 번호를 index 에 넣어줌
 						if( window.parent.opener.$(".rt :input:eq(" + i + ")").val() == "" ){
-							index = i;	
+							index = i + 1;	
 							break;
 						}
 					}
 				}else{	// 전화번호 리스트 사이즈보다 클 경우 동적 html 생성후 번호를 넣어줌
-					var html = "<li><div class='lt'><input name='recvName"+ index + "' id='recvName"+ index + "' type='Text' class='inp'>"
-					+ "<div class='nt'>" + index + "</div></div><div class='rt'>"
-					+ "<input name='recvPhone" + index + "' id='recvPhone" + index + "' type='Text' class='inp'>"
-					+ "<div class='bt'><img src='../images/sms/btn_close2.gif' alt='닫기'></div></div></li>";
- 					window.parent.opener.$("#pone_list li:last").after(html);						
+					
+					var html = "<ul><li><span>" + index + "</span><input disabled='disabled' readonly='readonly' name='recvName"+ index + "' id='recvName"+ index + "' type=text' class='inp'>"
+					+ " <li><input name='recvPhone" + index + "' id='recvPhone" + index + "' type='Text' class='inp hyphen rt' style=\"width:150px;\"></li>"
+					+ " <li class='bt'><img src='./images/sms/btn_close2.gif' alt='닫기'></li></ul>";
+ 					window.parent.opener.$("#pone_list ul:last").after(html);						
 				}
-
 				window.parent.opener.$("#recvName" + index).val( name );
 				window.parent.opener.$("#recvPhone" + index).val( phone );
+				var $lastInput = $("#recvPhone" + index);
+				$lastInput.focus();					
 				addedCount++;					
 			}
 		});
@@ -532,8 +533,7 @@ $(function() {
 		</colgroup>
 		<thead>
 			<tr>
-				<th><a id="allBtn" href="#" onclick="return false;"><img
-					src="./images/sms/btn_tall.gif" alt="전체 선택" /></a></th>
+				<th><a id="allBtn" href="#" onclick="return false;"><img src="./images/sms/btn_tall.gif" alt="전체 선택" /></a></th>
 				<th><a href="#">이름</a><img id="sortBtn" src="./images/sms/btn_opope.gif" alt="sort" /></th>
 				<th><a href="#">휴대번호</a><img id="sortBtn" src="./images/sms/btn_opope.gif" alt="sort" /></th>
 				<!-- 

@@ -29,15 +29,13 @@
 	                    </thead>
 	                    <tbody>
 	                    	  <tr>
-	                              <td><strong>작성자</strong> |</td>
-	                              <td style="text-align: left;">${data.registerName}
+	                              <td colspan="2"  style="text-align: left; padding-left: 10px;"><strong>작성자</strong> | ${data.registerName}
 										<c:if test="${!empty data.filename}">
 											<img  style="vertical-align: middle;margin : 0px 0px 0px 10px;" src="./images/notice/icon_disk.gif" alt="첨부파일" />
 											<a style="color :#005EB3" href="./FileDownAction.bo?file=${data.filename}">${data.filename}</a>
-										</c:if>	                              
+										</c:if>		                              
 	                              </td>
-	                              <td>${data.regDate}</td>	                              
-	                              <td>| 조회 : ${data.viewCount}</td>
+	                              <td colspan="2" style="text-align: right; padding-right: 10px;">${data.regDate} <strong>조회</strong> : ${data.viewCount}</td>	                    	  
 	                          </tr>
 	                          <tr>
 	                               <td colspan="4" class="view" height="300">

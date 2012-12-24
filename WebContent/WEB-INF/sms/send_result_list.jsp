@@ -89,7 +89,7 @@
 					   		   <a 	title="${data.message}"  class="message" href="#" onclick="return false;" >${data.message}</a>
 					       </td>					
 							<td>					
-					   		 ${data.responseResult}
+					   		 ${data.resultMsg}
 					       </td>	
 							<td>					
 					   		 ${data.flag =='s'?"SMS":"MMS"}
@@ -113,13 +113,6 @@
 				<c:if test="${(empty sendList) == false}">
 					${pagiNation}
 				</c:if>	
-				<!-- 
-				<div class="page">
-					<a href="#"><img src="images/notice/page_prev_btn.gif" /></a><a
-						href="#"><span>1</span></a><a href="#">2</a><a href="#"><img
-						src="images/notice/page_next_btn.gif" /></a>
-				</div>
-				-->
 			</div>
 		</div>
 	</div>

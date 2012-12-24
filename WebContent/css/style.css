@@ -14,7 +14,7 @@ fieldset, form, label, legend,
 table, caption, tbody, tfoot, thead, tr, th, td , input
 { margin:0; padding: 0;	border:0;} /* vertical-align: baseline; outline: 0;  */
 
-body { line-height: 1.5em; font-family:'Dotum'; font-size:12px; color:#8b8b8b;}
+body { line-height: 1.5em; font-family:'Dotum' ;  font-size:12px; color:#8b8b8b;}
 ol, ul, li { list-style: none;}
 blockquote, q { quotes: none;}
 input, textarea {font-family:'Dotum'; font-size:12px; color:#666666;}
@@ -100,7 +100,7 @@ body{background:url(../images/top/top_bg.gif) repeat-x 0 0;}
 /* subWrap end */
 
 /* contentsWrap */
-#contentsWrap {float:left; width:728px; margin-left:32px; background:url(../images/lettersend/bg.gif) no-repeat 0 40px; height:600px; margin-bottom:60px;}
+#contentsWrap {float:left; width:728px; margin-left:32px; background:url(../images/lettersend/bg.gif) no-repeat 0 40px; height:700px; margin-bottom:60px;}
 #contentsWrap h3 { margin-bottom:18px;}
 
 #contentsWrap .phone { background:url(../images/lettersend/phone_bg.gif) no-repeat 23px 23px; width:270px; height:400px; padding:14px 0 0 41px; float:left;}
@@ -123,7 +123,7 @@ body{background:url(../images/top/top_bg.gif) repeat-x 0 0;}
 
 #contentsWrap #pone_list{background:url(../images/sms/bg.gif) no-repeat;}
 #contentsWrap #pone_list, #group_list {   float:right; zoom: 1; width:393px; margin:24px 24px 0 0}
-#contentsWrap #pone_list .bg {  width: 372px; height:439px; padding-left:15px;}
+#contentsWrap #pone_list .bg {  width: 372px; height:400px; padding-left:15px;}
 #contentsWrap #controls {display: none;}
 #contentsWrap #pone_list .bg .srh { padding:10px 0; position: relative; z-index: 2; float: right; }	
 #contentsWrap #pone_list .bg .srh a { margin-right:5px;}
@@ -144,7 +144,7 @@ scrollbar-3dlight-color: #BEBEBE; scrollbar-arrow-color: #666666; scrollbar-dark
 .search { text-indent:.5em; font-size:16px; margin-right:5px; background: #f6f6f6; border:1px solid #CCCCCC; width: 180px; height: 24px;}	
 #contentsWrap #pone_list .bg .btn{ width:360px;  text-align:center; margin-top:5px; margin-right:30px; }
 
-#contentsWrap .tab_box { clear:both; position:relative; padding-top:27px;  width:728px; height:200px; border-bottom:1px solid #aabdc6;}
+#contentsWrap .tab_box { clear:both; position:relative; width:728px; height:300px; border-bottom:1px solid #aabdc6;}
 #contentsWrap .tab_box h4{ float:left; position:absolute;}
 #contentsWrap .tab_box .tab01{ left:147; }
 #contentsWrap .tab_box .tab01 .my01 { position:absolute; left:-147px; margin:20px 0 0 17px; width:700px; height:120px; display:none;}
@@ -268,6 +268,11 @@ scrollbar-3dlight-color: #BEBEBE; scrollbar-arrow-color: #666666; scrollbar-dark
 	#subWrap .manager_box .btn { text-align:center; margin-top:17px;}	
 /*---------------------------------------------------------------manager end------------------------------------------------------------------------*/
 
+/*--- 게시판 제목 ----*/
+.subject{vertical-align: middle;}
+td { line-height:20px;  padding-top: 5px;}
+/*---  점선 없애기 ---*/
+a, input { outline:none; }
 /* footer */
 #footer_wrap { position:relative; clear:both; background:#eeeeee; height:70px; width:100%; border-top: solid 1px #dcdcdc;  border-bottom: solid 1px #dcdcdc; margin-top:60px;}
 	.footer { margin:0 auto; padding:15px 0; text-align: center;}

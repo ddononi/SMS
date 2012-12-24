@@ -71,7 +71,7 @@
 							<td class="num"><%=no--%></td>
 							<td class="tite">
 									${data.newIcon?'<img src="images/notice/icon_n.gif" />':''}							
-									<a href="./BoardDetailView.bo?index=${data.index}">${data.notice?'[공지]':''}
+									<a class="subject"  href="./BoardDetailView.bo?index=${data.index}">${data.notice?'[공지]':''}
 									${data.title}</a>
 							</td>
 							<td class="writer">${data.registerName}</td>
@@ -96,7 +96,6 @@
 <script type="text/javascript">
 <!--
 $(function(){
-
 	
     // odd td colume stand out
     $("#board_table tbody tr").each(function(i){

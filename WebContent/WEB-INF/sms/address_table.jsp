@@ -4,13 +4,6 @@
 <%@ page import="kr.go.police.address.*"  %>		
 <%@ page import="kr.go.police.sms.Group"  %>			
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%
-	int count =0;
-	// 주소록 리스트
-	List<AddressBean> addressList = (List<AddressBean>)request.getAttribute("list");
-%>	
-<c:set var="list"  value ="<%=addressList %>" />
-<c:set var="size"  value ="<%=addressList.size() %>" />
 <?xml version="1.0" encoding="EUC-KR" ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -29,6 +22,7 @@ a:HOVER{color:#00b5f5;}
 .ads_tbl tbody tr{border-top:1px solid red;}
 .ads_tbl tbody td{font-size:12px;padding:2px 0;}
 .odd{background-color:#f7f7f7;border:none;}
+#allBtn{cursor: pointer;}
 </style>
 <script> 
 jQuery.js = {
@@ -41,6 +35,34 @@ jQuery.js = {
 	spectrum : function(){  
 	   return 'rgb(' + (Math.floor(Math.random() * 256)) + ',' + (Math.floor(Math.random() * 256)) + ',' + (Math.floor(Math.random() * 256)) + ')';  
 	 }
+};
+
+//휴대폰 번호에 (-)하이픈 넣기
+$.fn.addHyphen = function(){
+	
+	return this.each(function(){
+		var phone;
+		if( $(this).is("input")){
+			phone = $.trim($(this).val());
+		}else{
+			phone = $.trim($(this).text());
+		}
+		
+		// 하이픈이 있으면 먼저 제거
+		phone = phone.split("-").join("");;
+		if(phone.length < 11 && phone.length> 7 ){
+			phone = phone.substr(0, 3) + "-" + phone.substr(3, 3) + "-" + phone.substr(6);
+		}else if(phone.length >= 11){
+			phone= phone.substr(0, 3) + "-" + phone.substr(3, 4) + "-" + phone.substr(7);
+		}
+		
+		$(this).val(phone);
+		if( $(this).is("input")){
+			$(this).val(phone);
+		}else{
+			$(this).text(phone);			
+		}
+	});
 };
 
 $(function() {
@@ -57,12 +79,12 @@ $(function() {
 	$("#allBtn").click(function(){	// 전체 선택 및 해제
 		var all = "./images/sms/btn_tall.gif";
 		var clear = "./images/sms/btn_choice_off.gif";
-		var src = $(this).children("img").attr("src");
-		if( src == clear ){
-			$(this).children("img").attr("src", all);
+		var $this = $(this);
+		if( $this.attr('src')  == clear ){
+			$this.attr("src", all);
 			$.js.selectAll(false);
 		}else{
-			$(this).children("img").attr("src", clear);
+			$this.attr("src", clear);
 			$.js.selectAll(true);
 		}
 	});
@@ -72,6 +94,9 @@ $(function() {
 	}).mouseout(function(){
 		$(this).siblings().andSelf().css("color", "#333");
 	});
+	
+	// 전화번호 하이픈 처리
+	$(".phone_num").addHyphen();
 });
 </script>
 </head>
@@ -90,8 +115,7 @@ $(function() {
 	</colgroup>
 	<thead>
 		<tr>
-			<th><a id="allBtn" href="#" onclick="return false;">
-				<img src="./images/sms/btn_tall.gif" alt="전체 선택" /></a></th>
+			<th><img id="allBtn" src="./images/sms/btn_tall.gif" alt="전체 선택" /></a></th>
 			<th><a href="#">이름</a><img id="sortBtn" src="./images/sms/btn_opope.gif" alt="sort" /></th>
 			<th><a href="#">휴대번호</a><img src="./images/sms/btn_opope.gif" alt="sort" /></th>
 			<!-- 
@@ -114,7 +138,7 @@ $(function() {
 	   		   <input type="checkbox" value="" />
 	       </td>
 			<td>${data.people}</td>
-			<td>${data.phone}</td>
+			<td class="phone_num">${data.phone}</td>
 			<td></td>
 			<td></td>				       		
 	     </tr> 

@@ -29,10 +29,8 @@
 	                    </thead>
 	                    <tbody>
 	                    	  <tr>
-	                              <td><strong>작성자</strong> |</td>
-	                              <td style="text-align: left;">${data.registerName}</td>
-	                              <td>${data.regDate}</td>	                              
-	                              <td>| 조회 : ${data.viewCount}</td>
+	                              <td colspan="2"  style="text-align: left; padding-left: 10px;"><strong>작성자</strong> | ${data.registerName}</td>
+	                              <td colspan="2" style="text-align: right; padding-right: 10px;">${data.regDate} <strong>조회</strong> : ${data.viewCount}</td>	                    	  
 	                          </tr>
 	                          <tr>
 	                               <td colspan="4" class="view" height="300">

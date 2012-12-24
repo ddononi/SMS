@@ -79,7 +79,7 @@
 							<td class="num"><%=no--%></td>
 							<td class="tite">
 									${data.newIcon?'<img src="images/notice/icon_n.gif" />':''}							
-									<a href="./AdminBoardDetailView.bo?index=${data.index}">${data.notice?'[공지]':''}
+									<a class="subject" href="./AdminBoardDetailView.bo?index=${data.index}">${data.notice?'[공지]':''}
 									${data.title}</a>
 							</td>
 							<td class="writer">${data.registerName}</td>

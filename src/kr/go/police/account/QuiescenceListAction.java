@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import kr.go.police.SMSUtil;
 import kr.go.police.action.Action;
@@ -28,13 +29,17 @@ public class QuiescenceListAction implements Action {
 			limit = Integer.valueOf(request.getParameter("limit"));
 		}
 
+		// 경찰서 코드가져오기
+		HttpSession session = request.getSession();
+		int psCode =  (Integer)session.getAttribute("psCode");		
+		
 		int start = (page -1 ) * limit +1;				// 시작 번호
-		int listSize = dao.getQuserListCount();		// 유저 수
+		int listSize = dao.getQuserListCount(psCode);		// 유저 수
 		//	리스트 번호
 		int no = listSize - (page - 1) * limit;		
 		// 페이지 네이션 처리
 		String pagiNation = SMSUtil.makePagiNation(listSize, page, limit, "QuiescenceAction.ac", null);  
-		ArrayList<UserBean> list = (ArrayList<UserBean>)dao.getQuserList("", start, limit);
+		ArrayList<UserBean> list = (ArrayList<UserBean>)dao.getQuserList("", start, limit, psCode);
 		
 		request.setAttribute("no", no);									// 리스트 번호		
 		request.setAttribute("listSize", listSize);						// 총  주소록그룹 갯수

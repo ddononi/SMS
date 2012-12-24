@@ -10,6 +10,11 @@
 %>	
 <%-- 헤더  --%>
 <jsp:include page="../modules/header.jsp" />
+<<style>
+<!--
+form *{ line-height: 20px; margin: 3px;}
+-->
+</style>
 <body>
 	<div id="dialog-modify-form" title="주소록 변경">
 		<form method="post" id="modifyFrm" action="./AddressModifyAction.ad" style="margin-top: 20px">
@@ -34,6 +39,13 @@
 		    </fieldset>
 	    </form>
 	</div>	
+	<!-- 엑셀파일 불러오기 다이얼로그 -->
+	<div id="excel_upload_dlg" title="액셀파일 등록">
+		<form id="excel_frm" method="post" action="ExcelReadAction.ad" enctype="multipart/form-data">
+				<input size="30"  id="excel_file" type="file" name="filename" />
+				<input type="hidden" value="${groupIndex}"  name="groupIndex"  />
+		</form>	
+	</div>
 	<div id="wrapper">
 		<%-- 상단메뉴  --%>
 		<jsp:include page="../modules/topmenu.jsp" />
@@ -106,11 +118,16 @@
 					</c:forEach>
 					</tbody>
 				</table>
-				<%--	삭제 폼 --%>
 				<div id="buttons" style="float: right;  margin-top: 5px;">
+						<a  href="#excel"  id="excel_btn">엑셀</a>
 						<a  href="#"  id="add_btn">추가</a>
-						<a  href="./AddressGroupListAction.ad"  >그룹목록</a>
-				</div>		
+						<a  href="./AddressGroupListAction.ad"  >그룹목록</a>	
+						<a  href="#excel_save_btn"  id="excel_save_btn"   >엑셀 저장</a>					
+				</div>	
+				<!-- 엑셀파일 저장하기 -->
+				<form method="post" action="./ExcelWriteAction.ad"  id="excel_save_frm" >
+					<input type="hidden" value="${groupIndex}"  name="groupIndex" />				
+				</form>				
 				<div style="clear: both;"></div>							
 				<c:if test="${(empty list) == false}">
 					${pagiNation}
@@ -140,9 +157,9 @@ $(function(){
       }
     );   
     //	전화번호 하이픈 처리
-    //$(".phone").addHyphen();
+    $(".hyphen").addHyphen();
     // 버튼 ui
-    $("#buttons a").button();
+    $("#buttons a, #upload_btn").button();
 	//	입력창 에서 엔터 버튼 입력시 폼전송
     $("#search").tooltip().keydown(function(event){
 	       if(event.keyCode == 13){
@@ -223,6 +240,42 @@ $(function(){
             }
     });     
     
+    //  추가 다이얼로그 설정
+	$( "#excel_upload_dlg" ).dialog({
+            autoOpen: false,
+            modal: true,
+            width : 350,
+            buttons: {
+            	// 주소록 추가 처리
+                "추가": function() {
+                	var file = $("#excel_file").val();
+                	if(file.length <= 0){
+                		alert("파일을 입력하세요");
+                		return;
+                	}else if( file.substr(file.lastIndexOf(".") + 1, 3)  != 'xls' ){
+                		alert(file.substr(file.lastIndexOf(".") + 1, 3) );
+                		alert("Excel파일(xls)만 지원합니다.");
+                		return;           		
+                	}
+                	 
+                	$("#excel_frm").submit();                        	
+                },
+                "취소": function() {
+                    $( this ).dialog( "close" );
+                }
+            }
+    });       
+    
+    // 	엑셀등록 
+    $("#excel_btn").click(function(){
+    	$( "#excel_upload_dlg" ).dialog( "open" );
+    });    
+    
+    // 엑셀로 저장
+    $("#excel_save_btn").click(function(){
+    	$( "#excel_save_frm" ).submit();
+    });        
+    
     // 	주소록 추가 
     $("#add_btn").click(function(){
     	$( "#dialog-add-form" ).dialog( "open" );
@@ -253,8 +306,7 @@ $(function(){
 			$("#delForm").submit();
 		}
 	});  
-	// 전화번호 하이픈 넣기
-	$(".hyphen").addHyphen();
+	
     
 	// 메뉴 처리
 	$("#top_menu3").attr("data-on", "on");

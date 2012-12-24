@@ -55,6 +55,11 @@ public class SmsFrontcontrollerFilter implements Filter {
 			return;
 		}
 		
+		// 중복 접속을 막기 위한 세션아이디값 비교 
+		if(!LoginCheck.sessionIdCheck(request, response)){
+			return;
+		}	
+		
 		// 토큰 처리
 		if(command.equals("/ListDeleteAction.sm")){
 			// 토큰 검사
@@ -69,7 +74,7 @@ public class SmsFrontcontrollerFilter implements Filter {
 				return;
 			}
 		}
-		
+
 		chain.doFilter(request, response);
 	}
 

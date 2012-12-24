@@ -22,7 +22,7 @@ public class NoticeModifyView implements Action {
 		// 게시물내용 가져오기
 		BoardBean data = dao. getDetail(index);
 		String content = data.getContent();
-		content = content.replaceAll("\r\n", "<br/>");
+		content = content.replaceAll("<br/>", "\n");
 		data.setContent(content);
 		request.setAttribute("data", data);
 		// 공지사항 수정 보기 페이지로 이동

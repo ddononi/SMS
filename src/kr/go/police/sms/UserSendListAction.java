@@ -51,9 +51,11 @@ public class UserSendListAction implements Action {
 			type = (String)request.getParameter("type");		
 		}
 		
-		// 내 인덱스
+		// 경찰서 코드가져오기
+		HttpSession session = request.getSession();
+		int psCode =  (Integer)session.getAttribute("psCode");				
 		
-		
+		// 해당 유저 인덱스
 		int userIndex = Integer.parseInt(request.getParameter("index"));
 		String userid = request.getParameter("userid");
 		

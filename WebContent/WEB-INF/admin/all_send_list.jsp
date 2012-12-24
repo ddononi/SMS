@@ -97,7 +97,7 @@
 					   		   <a 	title="${data.message}"  class="message" href="#" onclick="return false;" >${data.message}</a>
 					       </td>					
 							<td>					
-					   		 ${data.requestResult}
+					   		 ${data.resultMsg}
 					       </td>	
 							<td>					
 					   		    ${data.flag}

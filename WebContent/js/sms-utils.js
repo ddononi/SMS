@@ -20,15 +20,29 @@ $.fn.spectrum = function(){
 
 // 휴대폰 번호에 (-)하이픈 넣기
 $.fn.addHyphen = function(){
+	
 	return this.each(function(){
-		var phone = $.trim($(this).text() || $(this).val() );
+		var phone;
+		if( $(this).is("input")){
+			phone = $.trim($(this).val());
+		}else{
+			phone = $.trim($(this).text());
+		}
+		
+		// 하이픈이 있으면 먼저 제거
+		phone = phone.split("-").join("");;
 		if(phone.length < 11 && phone.length> 7 ){
 			phone = phone.substr(0, 3) + "-" + phone.substr(3, 3) + "-" + phone.substr(6);
 		}else if(phone.length >= 11){
 			phone= phone.substr(0, 3) + "-" + phone.substr(3, 4) + "-" + phone.substr(7);
 		}
-		$(this).text(phone);
+		
 		$(this).val(phone);
+		if( $(this).is("input")){
+			$(this).val(phone);
+		}else{
+			$(this).text(phone);			
+		}
 	});
 };
 
@@ -110,14 +124,6 @@ jQuery.myUtil = {
 		$("*").keypress(function(e) {
 			$.myUtil.logoutCount = 0;
 		});
-	},
-	// 엔터키 입력시 폼 전송 방지를 위해
-	doNotEnterKey : function() {
-		$(document).keydown(function(e) {
-			if (e.keyCode == 13) {
-				return false;
-			}
-		});
 	}
 }
 
@@ -195,15 +201,17 @@ jQuery.fn.toCenter = function() {
 
 // 비밀번호 체크
 function checkPassword(uid, upw) {
-	if (!/^[a-zA-Z0-9]{8,20}$/.test(upw)) {
-		alert('비밀번호는 숫자와 영문자 조합으로 8~20자리를 사용해야 합니다.');
+	if (!/([a-zA-Z0-9].*[!,@,#,$,%,^,&,*,?,_,~])|([!,@,#,$,%,^,&,*,?,_,~].*[a-zA-Z0-9]){8,20}$/.test(upw)) {
+		alert('비밀번호는 숫문자, 숫자, 특수문자의 조합을 8~20자리를 사용해야 합니다.');
 		return false;
 	}
 
 	var chk_num = upw.search(/[0-9]/g);
 	var chk_eng = upw.search(/[a-z]/ig);
-	if (chk_num < 0 || chk_eng < 0) {
-		alert('비밀번호는 숫자와 영문자를 혼용하여야 합니다.');
+	var chk_spe = upw.search( /[~!@\#$%^&*\()\=+_']/ig);
+	
+	if (chk_num < 0 || chk_eng < 0 || chk_spe < 0 ) {
+		alert('비밀번호는 문자, 숫자, 특수문자의 조합을 혼용하여야 합니다.');
 		return false;
 	}
 
@@ -211,6 +219,7 @@ function checkPassword(uid, upw) {
 		alert('비밀번호에 같은 문자를 4번 이상 사용하실 수 없습니다.');
 		return false;
 	}
+	
 	if (upw.search(uid) > -1) {
 		alert('ID가 포함된 비밀번호는 사용하실 수 없습니다.');
 		return false;
@@ -245,17 +254,151 @@ function checkHyphen(obj) {
 	}
 }
 
+/**
+ * 현재 날짜/시간 YYYY-MM-DD hh:mm:ss 포맷 
+ * @returns {String}
+ */
+function getTimeStamp() {
+	  var d = new Date();
+
+	  var s =
+	    leadingZeros(d.getFullYear(), 4) + '-' +
+	    leadingZeros(d.getMonth() + 1, 2) + '-' +
+	    leadingZeros(d.getDate(), 2) + ' ' +
+
+	    leadingZeros(d.getHours(), 2) + ':' +
+	    leadingZeros(d.getMinutes(), 2) + ':' +
+	    leadingZeros(d.getSeconds(), 2);
+
+	  return s;
+}
+
+
+
+function leadingZeros(n, digits) {
+  var zero = '';
+  n = n.toString();
+
+  if (n.length < digits) {
+    for (var i = 0; i < digits - n.length; i++)
+      zero += '0';
+  }
+  return zero + n;
+}
+
+/**
+ * CAPS LOCK키 켜지있는지 체크
+ * @param e
+ */
+function checkCapsLock(e) {
+	 var myKeyCode=0;
+	 var myShiftKey=false;
+	 var myMsg='Caps Lock이 켜져있습니다. 확인하세요!';
+
+	 // Internet Explorer 4+
+	 if ( document.all ) {
+	  myKeyCode=e.keyCode;
+	  myShiftKey=e.shiftKey;
+
+	 // Netscape 4
+	 } else if ( document.layers ) {
+	  myKeyCode=e.which;
+	  myShiftKey=( myKeyCode == 16 ) ? true : false;
+
+	 // Netscape 6
+	 } else if ( document.getElementById ) {
+	  myKeyCode=e.which;
+	  myShiftKey=( myKeyCode == 16 ) ? true : false;
+
+	 }
+
+	 // Upper case letters are seen without depressing the Shift key, therefore Caps Lock is on
+	 if ( ( myKeyCode >= 65 && myKeyCode <= 90 ) && !myShiftKey ) {
+	  alert( myMsg );
+
+	 // Lower case letters are seen while depressing the Shift key, therefore Caps Lock is on
+	 } else if ( ( myKeyCode >= 97 && myKeyCode <= 122 ) && myShiftKey ) {
+	  alert( myMsg );
+
+	 }
+}
+
+$.fn.setCursorPosition = function(pos) {
+	  this.each(function(index, elem) {
+	    if (elem.setSelectionRange) {
+	      elem.setSelectionRange(pos, pos);
+	    } else if (elem.createTextRange) {
+	      var range = elem.createTextRange();
+	      range.collapse(true);
+	      range.moveEnd('character', pos);
+	      range.moveStart('character', pos);
+	      range.select();
+	    }
+	  });
+	  return this;
+};
+
+// 커서 위치 설정 메소드
+function setSelectionRange(input, selectionStart, selectionEnd){
+	if (input.setSelectionRange) {
+		input.focus();
+		input.setSelectionRange(selectionStart, selectionEnd);
+	} else if (input.createTextRange) {
+		var range = input.createTextRange();
+		range.collapse(true);
+		range.moveEnd('character', selectionEnd);
+		range.moveStart('character', selectionStart);
+		range.select();
+	}
+}
+
+function getCursorPos(input) {
+    if ("selectionStart" in input && document.activeElement == input) {
+        return {
+            start: input.selectionStart,
+            end: input.selectionEnd
+        };
+    }
+    else if (input.createTextRange) {
+        var sel = document.selection.createRange();
+        if (sel.parentElement() === input) {
+            var rng = input.createTextRange();
+            rng.moveToBookmark(sel.getBookmark());
+            for (var len = 0;
+                     rng.compareEndPoints("EndToStart", rng) > 0;
+                     rng.moveEnd("character", -1)) {
+                len++;
+            }
+            rng.setEndPoint("StartToStart", input.createTextRange());
+            for (var pos = { start: 0, end: len };
+                     rng.compareEndPoints("EndToStart", rng) > 0;
+                     rng.moveEnd("character", -1)) {
+                pos.start++;
+                pos.end++;
+            }
+            return pos;
+        }
+    }
+    return -1;
+}
+
+// 클립보드에 복사
+function clipboard(str){
+    window.clipboardData.setData('Text',str);
+    alert("클립보드에 복사되었습니다.");
+}
+
 $(document).ready(function() {
-	var logoutCount = 0; // 로그아웃 카운트
 	$.myUtil.clock();
-	$("input, textarea, select").inputOver(); // focus 효과
-	$.myUtil.doNotEnterKey();
+	$("input, select").inputOver(); // focus 효과
 	$("table.board tbody tr:odd").addClass("alt");
 
 	$("body").css("min-width", "800px");
 	$.myUtil.autoLogout(); // 자동로그아웃
 	$.myUtil.logoutCountReset();
 
+	
+	
 	// 사용자가 웹브라우저를 종료 했을경우
 	// $(window).onBeforeUnload(function() {
 	// $.post("../logout.jsp");

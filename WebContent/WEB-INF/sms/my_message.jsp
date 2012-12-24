@@ -7,8 +7,8 @@
 <jsp:include page="../modules/header.jsp" />
   <style>
     .column { width: 170px; float: left; padding-bottom: 100px; }
-    .portlet { margin: 0 1em 1em 0; cursor: pointer; }
-    .portlet-header { margin: 0.3em; padding-bottom: 4px; padding-left: 0.2em; }
+    .portlet { cursor: pointer; }
+    .portlet-header { margin: 0.3em;  padding-left: 0.2em; padding-top: 8px;}
     .portlet-header .ui-icon { float: right; }
     .portlet-content { padding: 0.4em; }
     .ui-sortable-placeholder { border: 1px dotted black; visibility: visible !important; height: 50px !important; }
@@ -84,8 +84,8 @@ $(function() {
 				<c:forEach var="msg"  items="${messages}" >
 	        		<ul class="box">
 	        			<li>
-						    <div class="portlet"><a href="./MyMessageView.sm?index=${msg.index}" title="메시지 보기" >
-						        <div class="portlet-header">${msg.title}</div>
+						    <div class="portlet"><div class="portlet-header">${msg.title}</div>
+						    <a href="./MyMessageView.sm?index=${msg.index}" title="메시지 보기" >						        
 						        <div class="portlet-content">${msg.message}</div>
 						        </a>
 						    </div>	

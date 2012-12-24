@@ -1,5 +1,7 @@
 package kr.go.police.account;
 
+import java.util.ArrayList;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -19,7 +21,13 @@ public class UserDetailAction implements Action {
 		String indexSt = (String)request.getParameter("index");
 		int index = Integer.valueOf(indexSt);
 		UserBean data = dao.getUserDetail(index);
+		// 경찰서 목록
+		ArrayList<PoliceBean> psList = (ArrayList<PoliceBean>)dao.getPsList();
+		// 부서 목록
+		ArrayList<DeptBean> deptList = (ArrayList<DeptBean>)dao.getSubDeptList(data.getPsCode());		
 		// 사용자 정보 담기
+		request.setAttribute("psList", psList);	
+		request.setAttribute("deptList", deptList);	
 		request.setAttribute("userData", data);
 		forward.setPath("./WEB-INF/admin/user_view.jsp");
 		return forward;			

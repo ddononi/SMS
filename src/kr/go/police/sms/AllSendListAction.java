@@ -3,6 +3,7 @@ package kr.go.police.sms;
 import java.util.ArrayList;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 //import javax.servlet.http.HttpSession;
 
 import kr.go.police.CommandToken;
@@ -50,18 +51,19 @@ public class AllSendListAction implements Action {
 		if(request.getParameter("type") != null){
 			type = (String)request.getParameter("type");		
 		}
-		
+
+		// 경찰서 코드가져오기
+		HttpSession session = request.getSession();
+		int psCode =  (Integer)session.getAttribute("psCode");		
 				
 		int start = (page -1 ) * limit +1;			// 시작 번호
-		
-		
-		int listSize = dao.getSendListCount(search,type);		// 내 발송 내역 갯수
+		int listSize = dao.getSendListCount(search,type, psCode);		// 내 발송 내역 갯수
 		//	리스트 번호
 		int no = listSize - (page - 1) * limit;		
 		// 페이지 네이션 처리
 		String params = "limit=" +limit + "&search=" + search+"&type="+type;
 		String pagiNation = SMSUtil.makePagiNation(listSize, page, limit, "AllSendListAction.sm", params);  
-		ArrayList<SMSBean> list = (ArrayList<SMSBean>)dao.getSendList(start, limit, search, type);
+		ArrayList<SMSBean> list = (ArrayList<SMSBean>)dao.getSendList(start, limit, search, type, psCode);
 		
 		// token 설정
 		String token = CommandToken.set(request);

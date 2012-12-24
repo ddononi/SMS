@@ -78,7 +78,7 @@
 							<td class="tite">
 									${data.hasFile?'<img src="images/notice/icon_disk.gif" />':''}
 									${data.newIcon?'<img src="images/notice/icon_n.gif" />':''}							
-									<a href="./NoticeModifyView.bo?index=${data.index}">${data.notice?'[공지]':''}
+									<a class="subject"  href="./NoticeModifyView.bo?index=${data.index}">${data.notice?'[공지]':''}
 									${data.title}</a>
 							</td>
 							<td class="day">${data.regDate}</td>

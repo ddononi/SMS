@@ -9,6 +9,7 @@ body{background-color: #f4f9ff; }
 img{ border:none;}
 p { margin: 20px;}
 </style>
+<link rel="shortcut icon" href="../images/base/police.ico" type="image/ico" />    
 <link rel="stylesheet" type="text/css" href="../css/plug-in/fileTree/default/easyui.css" />
 <script type="text/javascript" src="../js/jquery-1.8.2.min.js"></script>
 <script type="text/javascript" src="../js/plug-in/fileTree/jquery.easyui.min.js"></script>
