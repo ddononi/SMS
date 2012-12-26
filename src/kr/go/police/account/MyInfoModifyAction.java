@@ -53,7 +53,6 @@ public class MyInfoModifyAction implements Action {
 		data.setDeptCode(Integer.valueOf(deptName.split(",")[0]));			
 		data.setPhone1(phone);
 		data.setName(name);
-		data.setPwd(IGwConstant.PWD_SALT + pwd + IGwConstant.PWD_SALT);		
 		data.setPsName(psName.split(",")[1]);
 		data.setPsCode(Integer.valueOf(psName.split(",")[0]));		
 		data.setEmail(email);

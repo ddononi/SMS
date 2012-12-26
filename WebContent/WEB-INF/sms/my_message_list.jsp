@@ -24,42 +24,39 @@
 body{background:none;}
 .mymessage * { cursor: pointer;}
 h3{text-align: center; margin-top: 60px;}
-select{width: 130px;}
+select{width: 130px; float: right;}
+ textarea{background-color: #FEF6D0;}
 </style>
 </head>
-	<body>						
-				<div style="display: block; float: right;">				
-				<form  id="search_frm" action="./MyMessageListAction.sm" method="post"  >
-					<select id="groupIndex" name="groupIndex" >									
-						<c:forEach var="gl"  items="${groupList}">
-							<option ${groupIndex == gl.index?"selected":""} value="${gl.index }">${gl.group}</option>
-							</c:forEach>
-							</form>								
-								</select>
-						</div>
-							<div style="display: block; clear: both; padding:5px 0px 5px 0px;">
-								<c:if test="${empty list}">
-									<ul>
-										<li colspan="7"><h3>등록된 문자가 없습니다.</h3></li>
-									</ul> 
-								</c:if>
-								<c:forEach var="mdate" items="${list}">
-									<ul class="mymessage" style="heighe:107px; display:block; float:left; margin:5px 10px 0px 10px; text-align: center; background: url('./images/sms/sms_back.gif') no-repeat center top;">						
-										<li style="width:150px; height: 145px;">									
-											<textarea  style="width:135px; height: 108px; padding:2px; margin-top:21.5px; cursor:pointer;" name="${mdate.index }" >${mdate.message}</textarea>								
-										</li>								
-										<li>${mdate.title}</li>							
-									</ul>									
-								</c:forEach>		
-							</div>							
-							 <br />
-							 <div style="margin-bottom: 0px; display: block; width:600px; float:left; padding:0px 0px 5px 0px;"" class="boderWrap">
-								<c:if test="${(empty list) == false}">
-										${pagiNation}
-								</c:if>	
-							</div>
-			</body>
-</html>
+<body>						
+	<div style="display: block; float: right;">				
+	<form  id="search_frm" action="./MyMessageListAction.sm" method="post"  >
+		<select id="groupIndex" name="groupIndex" >									
+			<c:forEach var="gl"  items="${groupList}">
+				<option ${groupIndex == gl.index?"selected":""} value="${gl.index }">${gl.group}</option>
+			</c:forEach>
+		</select>
+			<c:if test="${empty list}">
+				<h3 style="clear:both;padding-top: 70px;">등록된 문자가 없습니다.</h3>
+			</c:if>		
+			<div style="display: block; float:left; clear: both; padding:5px 0px 5px 0px;">
+				<c:forEach var="mdate" items="${list}">
+					<ul class="mymessage" style="heighe:107px; display:block; float:left; margin:5px 10px 0px 10px; text-align: center; background: url('./images/sms/sms_back.gif') no-repeat center top;">						
+						<li style="width:150px; height: 145px;">									
+							<textarea  style="width:135px; height: 108px; padding:2px; margin-top:21.5px; cursor:pointer;" name="${mdate.index }" >${mdate.message}</textarea>								
+						</li>								
+						<li>${mdate.title}</li>							
+					</ul>									
+				</c:forEach>		
+			</div>							
+			 <div style="margin-bottom: 0px; display: block; width:600px; float:left; padding:0px 0px 5px 0px;" class="boderWrap">
+				<c:if test="${(empty list) == false}">
+						${pagiNation}
+				</c:if>	
+			</div>
+	</form>
+	</div>
+</body>
 <script type="text/javascript">
 $(function(){
 	
@@ -94,5 +91,5 @@ $(function(){
 	}
 	
 });	 
-
 </script>
+</html>

@@ -14,117 +14,131 @@ select, #pwd_reset_btn{margin-left: 10px; width: 130px;}
 #new_pwd{ width: 150px; height: 30px; vertical-align: middle; line-height: 30px; text-indent: 10px;}
 </style>
 <script>
-	$(function() {
-		
-	    //  추가 다이얼로그 설정
-		$( "#new_pwd_dlg" ).dialog({
-	            autoOpen: false,
-	            modal: true,
-	            width : 300,
-	            buttons: {
-	                "확인": function() {
-	                    $( this ).dialog( "close" );
-	                }
-	            }
-	    });      
-	    
-		// 승인 미승인 ui 설정후 승인이나 미승인을 누르면 확인 다이얼로그를 띄워준다.
-		$("#radio").children("[type=radio]").click(function(event) {
-			//  승인 버튼을 눌렀을경우
-			if ($(this).attr("id") == "approve") {
-				$("#approveConfirm").dialog("open");
-			} else {
-				$("#refuseConfirm").dialog("open");
-			}
-
-		});
-		
-		// 경찰서 변경시 부서 목록을 가져온다.
-		$("#psname").change(function(){
-			var $this = $(this);
-			// 디폴트일경우
-			if($this.val() == "no"){
-				return;
-			}
-			$.get("./DeptListAction.ac", {code : $this.val().split(",")[0]},
-					function(result){
-						$("#deptName").empty().append($.trim(result));
-			});
-			
-		});
-		
-		// 승인 처리 확인 다이얼로그
-		$("#approveConfirm").dialog({
-			resizable : false,
-			height : 160,
-			modal : true,
-			autoOpen : false,
-			buttons : {
-				"확인" : function() {
-					$("[name='approve']:first").attr('checked', 'checked');
-					$("[name='approve']:last").removeAttr('checked');					
-					$(this).dialog("close");
-				},
-				"취소" : function() {
-					$("[name='approve']:first").removeAttr('checked');
-					$("[name='approve']:last").attr('checked', 'checked');
-					$(this).dialog("close");
-				}
-			}
-		});
-
-		$("#refuseConfirm").dialog({
-			resizable : false,
-			height : 160,
-			modal : true,
-			autoOpen : false,
-			buttons : {
-				"확인" : function() {
-					$("[name='approve']:first").removeAttr('checked');
-					$("[name='approve']:last").attr('checked', 'checked');
-					$(this).dialog("close");
-				},
-				"취소" : function() {
-					$("[name='approve']:first").attr('checked', 'checked');
-					$("[name='approve']:last").removeAttr('checked');		
-					$(this).dialog("close");
-				}
-			}
-		});
-
-		// 수정 확인 버튼
-		$("#modifyBtn").click(function() {
-			if (confirm("사용자정보를 수정 하시겠습니까?")) {
-				$("#info").submit();
-			}
-		});
-		
-		// 비밀번호 초기화 버튼
-		$("#pwd_reset_btn").button().click(function() {
-			if (confirm("비밀번호를 초기화 하시겠습니까?")) {
-				$("#pwd_reset").submit();
-				$.post(
-					"./PwdResetAction.ac",
-					{index : $("#index").val() },
-					function(result){
-						var result = $.trim(result);
-						if(result != "fail"){
-							$("#new_pwd").val(result);
-							$( "#new_pwd_dlg" ).dialog("open");
-							// 클립보드에 복사
-							$("#copy_btn").button().click(function(){
-								clipboard(result);
-							});
-						}
-				});
-		
-			}
-		});
-
+$(function() {
+	
+    //  추가 다이얼로그 설정
+	$( "#new_pwd_dlg" ).dialog({
+            autoOpen: false,
+            modal: true,
+            width : 300,
+            buttons: {
+                "확인": function() {
+                    $( this ).dialog( "close" );
+                }
+            }
+    });      
+    
+	// 승인 미승인 ui 설정후 승인이나 미승인을 누르면 확인 다이얼로그를 띄워준다.
+	$("#radio").children("[type=radio]").click(function(event) {
+		//  승인 버튼을 눌렀을경우
+		if ($(this).attr("id") == "approve") {
+			$("#approveConfirm").dialog("open");
+		} else {
+			$("#refuseConfirm").dialog("open");
+		}
 	});
 	
+	// 경찰서 변경시 부서 목록을 가져온다.
+	$("#psname").change(function(){
+		var $this = $(this);
+		// 디폴트일경우
+		if($this.val() == "no"){
+			return;
+		}
+		$.get("./DeptListAction.ac", {code : $this.val().split(",")[0]},
+				function(result){
+					$("#deptName").empty().append($.trim(result));
+		});
+		
+	});
+	
+	// 승인 처리 확인 다이얼로그
+	$("#approveConfirm").dialog({
+		resizable : false,
+		height : 160,
+		modal : true,
+		autoOpen : false,
+		buttons : {
+			"확인" : function() {
+				$("[name='approve']:first").attr('checked', 'checked');
+				$("[name='approve']:last").removeAttr('checked');					
+				$(this).dialog("close");
+			},
+			"취소" : function() {
+				$("[name='approve']:first").removeAttr('checked');
+				$("[name='approve']:last").attr('checked', 'checked');
+				$(this).dialog("close");
+			}
+		}
+	});
 
+	$("#refuseConfirm").dialog({
+		resizable : false,
+		height : 160,
+		modal : true,
+		autoOpen : false,
+		buttons : {
+			"확인" : function() {
+				$("[name='approve']:first").removeAttr('checked');
+				$("[name='approve']:last").attr('checked', 'checked');
+				$(this).dialog("close");
+			},
+			"취소" : function() {
+				$("[name='approve']:first").attr('checked', 'checked');
+				$("[name='approve']:last").removeAttr('checked');		
+				$(this).dialog("close");
+			}
+		}
+	});
 
+	// 수정 확인 버튼
+	$("#modifyBtn").click(function() {
+		if (confirm("사용자정보를 수정 하시겠습니까?")) {
+			// 검증 처리
+			var phone = $("#phone1").val() + $("#phone2").val() + $("#phone3").val();
+			if(!phone.isMobile()){
+				alert("올바른 휴대번호를 입력하세요");
+				$("#phone2").focus(); 
+				return;
+			}
+			
+			var $email = $("#email");
+			if(!$email.val().isEmail()){
+				alert("이메일을 정확히 입력하세요");
+				$email.focus(); 
+				return;
+			}			
+			
+			$("#info").submit();
+		}
+	});
+	
+	// 비밀번호 초기화 버튼
+	$("#pwd_reset_btn").button().click(function() {
+		if (confirm("비밀번호를 초기화 하시겠습니까?")) {
+			$("#pwd_reset").submit();
+			$.post(
+				"./PwdResetAction.ac",
+				{index : $("#index").val() },
+				function(result){
+					var result = $.trim(result);
+					if(result != "fail"){
+						$("#new_pwd").val(result);
+						$( "#new_pwd_dlg" ).dialog("open");
+						// 클립보드에 복사
+						$("#copy_btn").button().click(function(){
+							clipboard(result);
+						});
+					}
+			});
+	
+		}
+	});
+	
+	// 숫자만 입력허용
+	$("#phone2, #phone3").inputNumber();
+
+});
 </script>
 <body>
 	<div id="wrapper">
@@ -139,6 +153,7 @@ select, #pwd_reset_btn{margin-left: 10px; width: 130px;}
 					<img src="./images/boder/tit_member.gif" alt="회원정보변경" />
 				</h3>
 				<form action="./AdminModifyUserAction.ac" method="post" id="info">
+					<input type="hidden" name="token"  id="token"  value="${token}" />				
 					<input value="${userData.index}" id="index"
 						name="index" type="hidden" />
 					<table width="100%" border="0" cellpadding="0" cellspacing="0">
@@ -182,7 +197,7 @@ select, #pwd_reset_btn{margin-left: 10px; width: 130px;}
 								<td class="tite">
 									<select id="deptName" name="deptName"  title="부서를 선택하세요" >
 										<c:forEach var="dept"  items="${deptList}" >
-											<option ${dept.name == user.deptName?"selected='selected'":""} value="${dept.deptCode},${dept.name}" >${dept.name}</option>
+											<option ${dept.name == userData.deptName?"selected='selected'":""} value="${dept.deptCode},${dept.name}" >${dept.name}</option>
 										</c:forEach> 										
 									</select>
 								</td>								
@@ -199,9 +214,9 @@ select, #pwd_reset_btn{margin-left: 10px; width: 130px;}
 									</select>
 									 - <input
 									value="${userData.phoneMiddle1}" id="phone2" name="phone2" type="text"
-									style="width: 60px;" class="phone none" /> - <input
+									style="width: 60px;" class="phone none" maxlength="4" /> - <input
 									value="${userData.phoneBottom1}" id="phone3" name="phone3" type="text"
-									style="width: 60px;" class="phone none" /></td>
+									style="width: 60px;" class="phone none" maxlength="4"  /></td>
 							</tr>
 							<tr>
 								<td style="background: #f4f4f4;"><strong>계급</strong></td>

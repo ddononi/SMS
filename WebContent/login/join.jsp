@@ -186,7 +186,7 @@ function() {
 				$imgs.children(":last").hide();
 			}
 
-			// 계급 입력 검증
+			// 이메일 입력 검증
 			var regEmailExp = /^([0-9a-zA-Z_-]+)@([0-9a-zA-Z_-]+)(\.[0-9a-zA-Z_-]+){1,2}$/;
 			if ($("#email").val().length <= 0
 					|| regEmailExp.test($(

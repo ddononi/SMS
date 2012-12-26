@@ -6,11 +6,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import kr.go.police.CommandToken;
 import kr.go.police.action.Action;
 import kr.go.police.action.ActionForward;
 
-public class MyInfoAction implements Action {
+public class PwdChangePageAction implements Action {
 
 	@Override
 	public ActionForward execute(HttpServletRequest request,
@@ -27,15 +26,13 @@ public class MyInfoAction implements Action {
 		// 경찰서 목록
 		ArrayList<PoliceBean> psList = (ArrayList<PoliceBean>)dao.getPsList();
 		// 부서 목록
-		ArrayList<DeptBean> deptList = (ArrayList<DeptBean>)dao.getSubDeptList(data.getPsCode());
-		// token 설정
-		String token = CommandToken.set(request);
-		request.setAttribute("token", token);			
+		ArrayList<DeptBean> deptList = (ArrayList<DeptBean>)dao.getSubDeptList(data.getPsCode());		
 		// 사용자 정보 담기
 		request.setAttribute("user", data);
 		request.setAttribute("psList", psList);	
-		request.setAttribute("deptList", deptList);			
-		forward.setPath("./WEB-INF/account/myInfo.jsp");
+		request.setAttribute("deptList", deptList);
+		request.setAttribute("index", index);
+		forward.setPath("./WEB-INF/account/pwd_change.jsp");
 		return forward;			
 	}
 }

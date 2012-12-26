@@ -114,44 +114,22 @@ $(function() {
 				$imgs.children(":last").hide();
 			}
 
-			// 계급 입력 검증
-			var regEmailExp = /^([0-9a-zA-Z_-]+)@([0-9a-zA-Z_-]+)(\.[0-9a-zA-Z_-]+){1,2}$/;
-			if ($("#email").val().length <= 0
-					|| regEmailExp.test($(
-							"#email").val()) === false) {
+			// 휴대번호 검증
+			var phone = $("#phone1").val() + $("#phone2").val() + $("#phone3").val();
+			if(!phone.isMobile()){
+				alert("올바른 휴대번호를 입력하세요");
+				$("#phone2").focus(); 
+				return;
+			}
+			// 이메일
+			var $email = $("#email");
+			if(!$email.val().isEmail()){
 				alert("이메일을 정확히 입력하세요");
-				$("#email").trigger("focus");
-				var $imgs = $("#email").parent(
-						'td').siblings().eq(1);
-				$imgs.children(":first").show();
-				$imgs.children(":last").hide();
+				$email.focus(); 
 				return;
-			} else {
-				var $imgs = $("#email").parent(
-						'td').siblings().eq(1);
-				$imgs.children(":first").show();
-				$imgs.children(":last").hide();
-			}
-
-			//  비밀번호 검증
-			if ($("#pwd").val().length <= 0) {
-				alert("비밀번호를 입력하세요");
-				$("#pwd").trigger("focus");
-				return;
-			} else if (checkPassword($("#id").val(), $("#pwd").val()) === false) {
-				$("#pwd").trigger("focus");
-				return;
-			}
-
-			// 비밀번호 확인처리
-			if ($("#rePwd").val() != $("#rePwd")
-					.val()) {
-				alert("비밀번호가 동일하지 않습니다.");
-				$("#rePwd").trigger("focus");
-				return;
-			}
+			}	
 			
-			$("form").submit();
+			$("#info_modify").submit();
 		}
 				
 	});
@@ -162,6 +140,14 @@ $(function() {
 			$("#drop_out_dlg").dialog("open");
 		}
 	});
+	
+	// 비밀번호 변경 버튼
+	$("#pwd_change_Btn").click(function(){  
+    	$("#pwd_change").submit();
+	});    	
+	
+	// 숫자만 입력허용
+	$("#phone2, #phone3").inputNumber();	
 	
 });
 </script>
@@ -177,7 +163,8 @@ $(function() {
 				<h3>
 					<img src="./images/boder/tit_member.gif" alt="회원정보변경" />
 				</h3>
-				<form action="./MyInfoModify.ac" method="post">
+				<form action="./MyInfoModify.ac" method="post" id="info_modify">
+					<input type="hidden" name="token"  id="token"  value="${token}" />		
 					<table width="100%" border="0" cellpadding="0" cellspacing="0">
 						<tbody>
 							<tr style="border-top: #258abf 2px solid;">
@@ -193,16 +180,8 @@ $(function() {
 							</tr>
 							<tr >
 								<td style="background: #f4f4f4;"><strong>비밀번호</strong></td>
-								<td class="tite"><input type="password" id="pwd" name="pwd" value=""
-									title="최소 8글자이상  영대문자, 영소문자, 숫자, 특수문자 중 3종류 이상으로 구성해야 합니다."" class="none" />
-								</td>
+								<td class="tite"><a style="margin-left: 10px;" href="#" id="pwd_change_Btn" ><img src="./images/notice/modify_btn.gif" alt="패스워드수정" /></a>								
 							</tr>
-							<tr >
-								<td style="background: #f4f4f4;"><strong>비밀번호확인</strong></td>
-								<td class="tite"><input type="password" id="rePwd" name="rePwd" value=""
-									title="동일한 비밀번호를 입력하세요" class="none" />
-								</td>
-							</tr>									
 							<tr>
 								<td style="background: #f4f4f4;"><strong>경찰서</strong></td>
 								<td class="tite">
@@ -212,6 +191,7 @@ $(function() {
 											<option ${user.psName == police.name?"selected='selected'":""} value="${police.code},${police.name}" >${police.name}</option>
 										</c:forEach> 	
 									</select>
+								</td>
 							</tr>
 							<tr>
 								<td style="background: #f4f4f4;"><strong>부서</strong></td>
@@ -233,9 +213,9 @@ $(function() {
 										<option ${userData.phoneTop1 == "018"?"selected='selected'":""}  value="018">018</option>
 										<option ${userData.phoneTop1 == "019"?"selected='selected'":""}  value="019">019</option>
 									</select> - <input
-									value="${user.phoneMiddle1}" id="phone2" name="phone2" type="text"
+									value="${user.phoneMiddle1}" id="phone2" name="phone2" type="text" maxlength="4"
 									style="width: 60px;" class="phone none" /> - <input
-									value="${user.phoneBottom1}" id="phone3" name="phone3" type="text"
+									value="${user.phoneBottom1}" id="phone3" name="phone3" type="text" maxlength="4"
 									style="width: 60px;" class="phone none" /></td>
 							</tr>
 							<tr>
@@ -266,15 +246,15 @@ $(function() {
 					</table>
 				</form>
 				<div class="user_btn">
-					<a style="color: RED;" href="#" id="dropout_btn">탈퇴하기<!-- <img  src="./images/sms/tit_leave_off.gif" alt="회원탈퇴" />--></a>
-					<a href="#" id="modifyBtn">수정<!-- <img src="./images/notice/register_btn.gif" alt="등록" />--></a>
-					<a href="javascript: history.back(-1);">취소<!-- <img src="./images/notice/cancel_btn.gif" alt="취소" />--></a>
+					<a style="color: RED; float: left;" href="#" id="dropout_btn">회원탈퇴<!-- <img  src="./images/sms/tit_leave_off.gif" alt="회원탈퇴" />--></a>
+					<a style="float: right;" href="javascript: history.back(-1);">취소<!-- <img src="./images/notice/cancel_btn.gif" alt="취소" />--></a>
+					<a  href="#" id="modifyBtn">수정<!-- <img src="./images/notice/register_btn.gif" alt="등록" />--></a>					
 				</div>
 			</div>
 		</div>
 	</div>
 	<jsp:include page="../modules/footer.jspf" />	
-	
+
 	<%-- 회원 탈퇴 다이얼로그 --%>
 	<div id="drop_out_dlg" title="회원 탈퇴 처리">
 		<form method="post" id="dropout_frm" action="./DropoutAction.ac" style="margin-top: 20px">
@@ -284,7 +264,13 @@ $(function() {
 		    </fieldset>
 	    </form>
 	</div>	
+	
+	<%-- 비번변경폼 --%>	
+	<form method="post" action="./PwdChangePageAction.ac" id="pwd_change" name="pwd_change">
+		<input type="hidden" name="index" value="${index}">
+	</form>		
 </body>
+
 
 
 </html>

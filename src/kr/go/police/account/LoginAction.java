@@ -6,11 +6,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import kr.go.police.CommandToken;
 import kr.go.police.IGwConstant;
 import kr.go.police.action.Action;
 import kr.go.police.action.ActionForward;
-import kr.go.police.aria.Aria;
 
 public class LoginAction implements Action {
 	private AccountDAO dao = new AccountDAO();
@@ -38,12 +36,24 @@ public class LoginAction implements Action {
 				out.close();
 				return null;
 			}
-			
 			// 사용자 정보 세션 설정
 			initUserInfoSession(request,  id);
-			forward.setRedirect(true);
-			// 관리자이면 관리자 모드로 이동
+			forward.setRedirect(true);				
 			HttpSession session = request.getSession();
+			int userIndexs = Integer.valueOf( session.getAttribute("index").toString());
+						// 비밀번호 변경 확인
+			if(dao.PwdModifydate(id)==false){
+				response.setContentType("text/html;charset=euc-kr");
+				PrintWriter out = response.getWriter();			
+				out.println("<script>");				
+				out.println("alert('비밀번호를 변경하신지 3개월이 지났습니다.');");	
+				out.println("window.location.href='./PwdModifyAction.ac?index="+userIndexs+"&id="+id+"'");
+				out.println("</script>");	
+				out.close();
+				return null;
+			}
+			
+			// 관리자이면 관리자 모드로 이동
 			if(!session.getAttribute("class").equals(1)){
 				forward.setPath("./UserListAction.ac"); 	
 			}else{		// 일반 사용자

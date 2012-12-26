@@ -163,23 +163,22 @@ public class AccountDAO extends CommonCon {
 		
 		try {
 			conn = dataSource.getConnection();
-			String sql = "UPDATE user_info SET f_name = ?, f_password = password(?), f_phone1 = ?," +
+			String sql = "UPDATE user_info SET f_name = ?, f_phone1 = ?," +
 								" f_email = ?, f_grade = ?,  f_psname = ?, f_approve = ?, " +
 								" f_deptname = ?, f_class = ?, f_pscode = ?, f_deptcode = ? WHERE f_index = ?";
 			pstmt = conn.prepareStatement(sql);
 			Aria aria = Aria.getInstance();			// 암호화 처리
 			pstmt.setString(1, aria.encryptByte2HexStr(data.getName()));
-			pstmt.setString(2, data.getPwd());				
-			pstmt.setString(3, aria.encryptByte2HexStr(data.getPhone1()));
-			pstmt.setString(4, aria.encryptByte2HexStr(data.getEmail()));	
-			pstmt.setString(5, data.getGrade());		
-			pstmt.setString(6, data.getPsName());		
-			pstmt.setString(7, data.isApprove()?"y":"n");				
-			pstmt.setString(8, data.getDeptName());					
-			pstmt.setInt(9, data.getUserClass());
-			pstmt.setInt(10, data.getPsCode());	
-			pstmt.setInt(11, data.getDeptCode());				
-			pstmt.setInt(12, data.getIndex());	
+			pstmt.setString(2, aria.encryptByte2HexStr(data.getPhone1()));
+			pstmt.setString(3, aria.encryptByte2HexStr(data.getEmail()));	
+			pstmt.setString(4, data.getGrade());		
+			pstmt.setString(5, data.getPsName());		
+			pstmt.setString(6, data.isApprove()?"y":"n");				
+			pstmt.setString(7, data.getDeptName());					
+			pstmt.setInt(8, data.getUserClass());
+			pstmt.setInt(9, data.getPsCode());	
+			pstmt.setInt(10, data.getDeptCode());				
+			pstmt.setInt(11, data.getIndex());	
 			
 			// update
 			result = pstmt.executeUpdate();
@@ -192,6 +191,65 @@ public class AccountDAO extends CommonCon {
 			connClose();
 		}
 	}	
+	
+	/**	 
+	 * 패스워드 체크
+	 * @return
+	 */
+	protected boolean CheckPwd(int index, String pwd, String newPwd) {
+		try{
+			conn = dataSource.getConnection();
+			String sql = "SELECT * FROM user_info WHERE f_index = ? AND f_password =password(?) ";
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setInt(1, index);
+			pstmt.setString(2, pwd);
+			rs = pstmt.executeQuery();
+			if(rs.next()){
+				//	암호가 같다면 해당인덱스에 암호와 암호변경날짜 입력
+				sql = "UPDATE user_info SET f_last_pwd_modify = now(), f_password =password(?)" +
+						" WHERE f_index = ?";
+				pstmt = conn.prepareStatement(sql);	
+				pstmt.setString(1, newPwd);
+				pstmt.setInt(2, index);	
+				pstmt.executeUpdate();
+				return true;
+			}
+		}catch(Exception e){
+			e.printStackTrace();
+			System.out.println("CheckPwd 에러 : " + e.getMessage());
+		}finally{
+			connClose();
+		}
+		return false;
+	}
+	/**	 
+	 * 패스워드 수정날짜 체크
+	 * @return
+	 */
+	protected boolean PwdModifydate(String index) {
+		int count;
+		boolean result=false;
+		try{
+			conn = dataSource.getConnection();
+			String sql = "SELECT count(*) FROM user_info WHERE f_id = ? AND f_last_pwd_modify > NOW()- interval 3 month ";
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, index);
+			rs = pstmt.executeQuery();
+			if(rs.next()){				
+				count = rs.getInt(1);
+				if(count>0){			
+				return true;
+				}
+			}
+		}catch(Exception e){
+			e.printStackTrace();
+			System.out.println("CheckPwd 에러 : " + e.getMessage());
+		}finally{
+			connClose();
+		}
+		return false;
+	}
+	
 	
 	/**
 	 * 관리자모드에서 사용자 정보 변경
@@ -213,7 +271,8 @@ public class AccountDAO extends CommonCon {
 								" f_approve = ?, " +	
 								" f_psname = ?, " +									
 								" f_pscode = ?, " +	
-								" f_deptcode = ? " +									
+								" f_deptcode = ?, " +	
+								" f_deptname = ? " +									
 								" WHERE f_index = ?";
 			
 			pstmt = conn.prepareStatement(sql);
@@ -226,8 +285,9 @@ public class AccountDAO extends CommonCon {
 			pstmt.setString(7, data.isApprove()?"y":"n");
 			pstmt.setString(8, data.getPsName());				
 			pstmt.setInt(9, data.getPsCode());	
-			pstmt.setInt(10, data.getDeptCode());				
-			pstmt.setInt(11, data.getIndex());	
+			pstmt.setInt(10, data.getDeptCode());			
+			pstmt.setString(11, data.getDeptName());				
+			pstmt.setInt(12, data.getIndex());	
 			
 			// update
 			return pstmt.executeUpdate() > 0;

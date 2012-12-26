@@ -1,6 +1,7 @@
 package kr.go.police.account;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -12,6 +13,7 @@ import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import kr.go.police.CommandToken;
 import kr.go.police.LoginCheck;
 import kr.go.police.action.Action;
 
@@ -46,6 +48,22 @@ public class AccountFrontcontrollerFilter implements Filter {
 		String contextPath = request.getContextPath();
 		String command = requestURI.substring(contextPath.length());
 		request.setCharacterEncoding("EUC-KR");
+		
+		// 토큰 처리
+		if(command.equals("/AdminModifyUserAction.ac") ||
+			command.equals("/MyInfoModifyAction.ac") ){
+			// 토큰 검사
+			if (!CommandToken.isValid(request)) {
+				response.setContentType("text/html;charset=euc-kr");
+				PrintWriter out = response.getWriter();
+				out.println("<script>");
+				out.println("alert('비정상적인 요청입니다.');");
+				out.println("history.back(-1);");
+				out.println("</script>");	
+				CommandToken.set(request);			
+				return;
+			}
+		}
 		
 		// 로그인정보가 필요없는  command를 제외한
 		// 나머지 액션에서는 로그인여부 확인

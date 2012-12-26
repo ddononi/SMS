@@ -131,7 +131,18 @@
 		</div>
 	</div>
 	<jsp:include page="../modules/footer.jspf" />	
+	<!-- modal content -->
+	<div id="message_dlg" style="text-align: center;">
+		<ul class="mymessage" style="heighe:107px; display:block; text-align: center; background: url('./images/sms/sms_back.gif') no-repeat center top;">						
+			<li>									
+				<textarea  id="msg" style="width:134px; height: 108px;  
+				padding:2px; margin-top:21.5px; " readonly="readonly" ></textarea>								
+			</li>								
+		</ul>
+	</div>		
 </body>
+<link rel="stylesheet" type="text/css"  href="./css/simplemodal-basic.css" />        
+<script type="text/javascript" src="./js/plug-in/jquery.simplemodal.js"></script>
 <script type="text/javascript">
 <!--
 $(function(){
@@ -154,7 +165,12 @@ $(function(){
     );   
     
     // 메시지를 볼수 있도록 툴팁처리
-    $(".message").tooltip();
+    $(".message").click(function(){
+    	var msg = $.trim($(this).text());
+    	$("#msg").val(msg);
+    	$('#message_dlg').modal();
+    });
+    
 	//	입력창 에서 엔터 버튼 입력시 폼전송
     $("#search").tooltip().keydown(function(event){
 	       if(event.keyCode == 13){

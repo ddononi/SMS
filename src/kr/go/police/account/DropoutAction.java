@@ -6,7 +6,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import kr.go.police.IGwConstant;
 import kr.go.police.action.Action;
 import kr.go.police.action.ActionForward;
 
@@ -30,7 +29,7 @@ public class DropoutAction implements Action {
 			response.setContentType("text/html;charset=euc-kr");
 			PrintWriter out = response.getWriter();
 			out.println("<script>");
-			out.println("alert('정상적으로 탈퇴처리 되었습니다.');");
+			out.println("alert('관리자 승인후 로그인할수 있습니다..');");
 			out.println("window.location.href='./LogoutAction.ac';");
 			out.println("</script>");	
 		}else{

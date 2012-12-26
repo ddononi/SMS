@@ -9,7 +9,7 @@
 <style>
 #myMessageBox, #specailCharBox{cursor: pointer;}
 #send_result_dialog{ display: none; }
-
+ #message{background-color: #FEF6D0; font-size: 16px;}
 
 /* css for timepicker */
 .ui-timepicker-div .ui-widget-header { margin-bottom: 8px; }
@@ -125,13 +125,13 @@
 
 				<div class="tab_box">
 					<h4 class="tab01">
-						<img src="././images/lettersend/tab01_off.gif" id="myMessageBox" alt="내문자" border="0" /></a>
-						<div class="my01" style="height: 250px; margin: 10px 0 10px 17px; left:0px;">
-							<iframe frameBorder="0" src="./MyMessageListAction.sm" width="700"  height="250"></iframe>						 						
+						<img src="././images/lettersend/tab01_off.gif" id="myMessageBox" alt="내문자" border="0" />
+						<div class="my01" style="left:0px;">
+							<iframe src="./MyMessageListAction.sm" width="700px"  height="450px"></iframe>						 						
 						</div>
 					</h4>
 					<h4 class="tab02">
-						<img src="././images/lettersend/tab02_on.gif"  id="specailCharBox" alt="특수문자" border="0" /></a>
+						<img src="././images/lettersend/tab02_on.gif"  id="specailCharBox" alt="특수문자" border="0" />
 	                    <div class="my02">
 						<jsp:include page="../modules/specialBox.jspf" />
                     </div>
