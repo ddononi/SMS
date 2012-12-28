@@ -115,12 +115,15 @@ $(function() {
 			}
 
 			// 휴대번호 검증
+			/*
 			var phone = $("#phone1").val() + $("#phone2").val() + $("#phone3").val();
 			if(!phone.isMobile()){
 				alert("올바른 휴대번호를 입력하세요");
 				$("#phone2").focus(); 
 				return;
 			}
+			*/
+			
 			// 이메일
 			var $email = $("#email");
 			if(!$email.val().isEmail()){
@@ -212,6 +215,7 @@ $(function() {
 										<option ${userData.phoneTop1 == "016"?"selected='selected'":""}  value="016">016</option>
 										<option ${userData.phoneTop1 == "018"?"selected='selected'":""}  value="018">018</option>
 										<option ${userData.phoneTop1 == "019"?"selected='selected'":""}  value="019">019</option>
+										<option  ${userData.phoneTop1 == "033"?"selected='selected'":""}  value="033">033</option>
 									</select> - <input
 									value="${user.phoneMiddle1}" id="phone2" name="phone2" type="text" maxlength="4"
 									style="width: 60px;" class="phone none" /> - <input
@@ -259,6 +263,7 @@ $(function() {
 	<div id="drop_out_dlg" title="회원 탈퇴 처리">
 		<form method="post" id="dropout_frm" action="./DropoutAction.ac" style="margin-top: 20px">
 		    <fieldset>
+				<input type="hidden" name="token"  id="token"  value="${token}" />				    
 				<label>비밀번호 : </label>	
 		        <input type="password" size="30"  class="search" name="confirm_pwd"  id="confirm_pwd" title="비밀번호를 입력하세요" class="text ui-widget-content ui-corner-all" /><br/>
 		    </fieldset>
@@ -267,6 +272,7 @@ $(function() {
 	
 	<%-- 비번변경폼 --%>	
 	<form method="post" action="./PwdChangePageAction.ac" id="pwd_change" name="pwd_change">
+		<input type="hidden" name="token"  id="token"  value="${token}" />			
 		<input type="hidden" name="index" value="${index}">
 	</form>		
 </body>

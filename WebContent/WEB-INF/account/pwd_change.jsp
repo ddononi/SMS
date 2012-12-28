@@ -41,6 +41,15 @@ $(function() {
 			$("form").submit();
 		}
 	});
+	
+	$("input").keypress(function(event){
+		var $this = $(this);
+	    if ( isCapslock(event) ){
+	        $this.attr("title", "Caps Lock이 켜져 있습니다.")
+	    }else{
+	    	  $this.removeAttr("title").tooltip( "destroy" );
+	    }
+	});
 });
 </script>
 <body>
@@ -62,19 +71,19 @@ $(function() {
 							<tr style="border-top: #258abf 2px solid;">								
 								<td style="background: #f4f4f4;"><strong>현재 비밀번호</strong></td>
 								<td class="tite"><input type="password" id="pwd" name="pwd" value=""
-									title="현재 비밀번호를 입력해 주세요." class="none" />
+									 class="none" />
 								</td>
 							</tr>
 							<tr >
 								<td style="background: #f4f4f4;"><strong>새로운 비밀번호</strong></td>
 								<td class="tite"><input type="password" id="new_pwd" name="new_pwd" value=""
-									title="최소 8글자이상  영대문자, 영소문자, 숫자, 특수문자 중 3종류 이상으로 구성해야 합니다." class="none" />
+									class="none" />
 								</td>
 							</tr>
 							<tr>
 								<td style="background: #f4f4f4;"><strong>비밀번호확인</strong></td>
 								<td class="tite"><input type="password" id="rePwd" name="rePwd" value=""
-									title="동일한 비밀번호를 입력하세요" class="none" />
+									 class="none" />
 								</td>
 							</tr>
 						</tbody>

@@ -435,11 +435,12 @@ public class AddressDAO extends CommonCon {
 			conn = dataSource.getConnection();
 			// 해당 그룹의 주소록 삭제
 			String sql = "DELETE FROM address_book WHERE 1 =1 AND" +
-					" f_index = ? AND f_group_index = ? ";
+					" f_user_index = ? AND f_group_index = ? ";
 			pstmt = conn.prepareStatement(sql);
 			pstmt.setInt(1, userIndex);						// 유저 인덱스
 			pstmt.setInt(2, groupIndex);					// 그룹 인덱스					
 			pstmt.executeUpdate();	
+			connClose();
 			// 해당 그룹 삭제
 			sql = "DELETE FROM address_book_group WHERE 1 =1 AND" +
 					" f_user_index = ? AND f_index = ? ";

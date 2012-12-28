@@ -202,7 +202,7 @@ public class UserBean {
 
 	public String getVisitDate() {
 		if(visitDate != null){
-			visitDate.substring(2, 16);
+			return visitDate.substring(2, 16);
 		}
 		return visitDate;
 	}

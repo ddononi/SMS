@@ -57,9 +57,14 @@ public class AdminModifyUserAction implements Action {
 		
 		//	회원 정보 수정 처리
 		if(dao.modifyUserInfoFromAdmin(data)){
-			// 정상 처리면 다시 회원 리스트로 이동
-			forward.setPath("./UserListAction.ac"); 
-			return forward;
+			
+			response.setContentType("text/html;charset=euc-kr");
+			PrintWriter out = response.getWriter();
+			out.println("<script>");
+			out.println("alert('사용자 정보가 수정되었습니다.');");
+			out.println("history.go(-1);");
+			out.println("</script>");	
+			return null;
 		}else{
 			// 가입 실패
 			response.setContentType("text/html;charset=euc-kr");

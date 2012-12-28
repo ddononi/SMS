@@ -28,9 +28,9 @@
 					<img src="images/sms/title_reservlist.gif" alt="예약내역" />
 				</h3>
 				<%--	검색 처리 --%>
-				<form style="clear: both; width: 100%; padding:3px; vertical-align: middle;" id="search_frm" action="./AllReserveListAction.sm" method="get"  >
+				<form style="clear: both; width: 100%; padding:3px; vertical-align: middle;" id="search_frm" action="./ReservedListAction.sm" method="get"  >
 					<input value="" name="page" type="hidden" />
-					<select id="limit" name="limit" style="float: left; display: inline-block;">
+					<select id="limit" name="limit" style="float: left; display: inline-block;  margin-top:7px; width: 80px; vertical-align: middle;" >
 						<option ${limit == "10"?"selected":""} value="10">10개</option>
 						<option ${limit == "20"?"selected":""} value="20">20개</option>
 						<option ${limit == "30"?"selected":""} value="30">30개</option>
@@ -39,14 +39,15 @@
 					</select>	
 					<div style="float: right; display: inline-block;">
 					<select id=type name="type">
-						<option value="from"  ${type == "from"?"selected":""} >보낸이</option>
+						<!-- <option value="from"  ${type == "from"?"selected":""} >보낸이</option> -->
 						<option value="message" ${type == "message"?"selected":""} >메세지</option>
 						<option value="to" ${type == "to"?"selected":""} >받는번호</option>
 					</select>							
 						<input title="검색어를 입력하세요" style="margin-bottom: 3px;" value="${search}"  class="search phone" type="text" name="search" id="search" size="20" />
 						<a  href="#"  onclick="return false;" id="search_btn"><img style="margin-bottom:5px;margin-right:5px; right;vertical-align: middle;"  src="./images/base/category_btn.gif" /></a>
 					</div>
-				</form>				
+				</form>
+				
 				<!--예약내역 게시판-->
 				<table id="list"  style="clear: both;" width="100%" border="0" cellpadding="0" cellspacing="0">
 				<!-- 

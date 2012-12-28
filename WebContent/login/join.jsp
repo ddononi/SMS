@@ -16,6 +16,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=euc-kr" />
 <link rel="stylesheet" type="text/css" href="../css/style.css"/>
 <script type="text/javascript" src="../js/jquery-1.8.2.min.js"></script>
+<script type="text/javascript" src="../js/sms-utils.js"></script>
 <style>
 .check_yes img {
 	display: none;
@@ -347,6 +348,7 @@ function() {
 									<option value="016">016</option>
 									<option value="018">018</option>
 									<option value="019">019</option>
+									<option value="033">033</option>
 								</select>
 								 - <input maxlength="4" type="text" class="phone" id="phone2"
 								name="phone2" /> - <input maxlength="4" class="phone" type="text"

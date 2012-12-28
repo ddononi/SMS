@@ -32,7 +32,6 @@
 							<th>아이디</th>							
 							<th>경찰서</th>
 							<th>부서</th>
-							<th>전화번호</th>							
 							<th>접속시간</th>														
 						</tr>
 					</thead>
@@ -54,22 +53,19 @@
 					   		   <%=no--%>
 					       </td>						
 							<td>					
-					   		   ${user.name}
+					   		   <a href="./UserDetailAction.ac?index=${user.index}" >${user.name}</a>
 					       </td>
 							<td>					
-					   		  ${user.id}
+					   		  <a href="./UserDetailAction.ac?index=${user.index}" >${user.id}</a>
 					       </td>						       
 							<td>					
-					   		   ${user.psName}
+					   		   <a href="./UserDetailAction.ac?index=${user.index}" >${user.psName}</a>
 					       </td>					
 							<td>					
-					   		   ${user.deptName}
+					   		   <a href="./UserDetailAction.ac?index=${user.index}" >${user.deptName}</a>
 					       </td>	
 							<td>					
-					   		   ${user.phone1}
-					       </td>				
-							<td>					
-					   		  ${user.visitDate}
+					   		  <a href="./UserDetailAction.ac?index=${user.index}" >${user.visitDate}</a>
 					       </td>						       			       					       
 					     </tr> 
 					</c:forEach> 
@@ -78,7 +74,7 @@
 				
 				<form id="del_frm" action="./UserDeleteAction.ac" method="post" style="float: right;  margin-top: 5px;">
 					<input value=""  name="del_index"  id="del_index" type="hidden" />
-					<a href="#" onclick="return false;" id="del_btn">유저탈퇴</a>
+					<a href="#" onclick="return false;" id="del_btn">회원삭제</a>
 				</form>
 				<div style="clear: both;"></div>
 				 <c:if test="${(empty userList) == false}">

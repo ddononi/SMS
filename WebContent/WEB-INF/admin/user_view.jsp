@@ -9,8 +9,9 @@
 .check_yes img {
 	display: none;
 }
+.user_btn{ margin-top: 10px; text-align: right; }
 select, #pwd_reset_btn{margin-left: 10px; width: 130px;}
-#pwd_reset_btn{ vertical-align: middle; color: RED;  margin-bottom: 3px;}
+#pwd_reset_btn{ vertical-align: middle;  margin-bottom: 3px;}
 #new_pwd{ width: 150px; height: 30px; vertical-align: middle; line-height: 30px; text-indent: 10px;}
 </style>
 <script>
@@ -95,12 +96,14 @@ $(function() {
 	$("#modifyBtn").click(function() {
 		if (confirm("사용자정보를 수정 하시겠습니까?")) {
 			// 검증 처리
+			/*
 			var phone = $("#phone1").val() + $("#phone2").val() + $("#phone3").val();
 			if(!phone.isMobile()){
 				alert("올바른 휴대번호를 입력하세요");
 				$("#phone2").focus(); 
 				return;
 			}
+			*/
 			
 			var $email = $("#email");
 			if(!$email.val().isEmail()){
@@ -135,9 +138,19 @@ $(function() {
 		}
 	});
 	
+	$("#dropout_btn").click(function(){
+		var name = $("#name").val();
+		if(confirm("(" + name + ")회원을 삭제하시겠습니까?")){
+			// 회원 삭제처리
+			$("#del_frm").submit();
+		}
+		
+		return false;
+	});
+	
 	// 숫자만 입력허용
 	$("#phone2, #phone3").inputNumber();
-
+	$(".user_btn a").button();
 });
 </script>
 <body>
@@ -211,6 +224,7 @@ $(function() {
 										<option ${userData.phoneTop1 == "016"?"selected='selected'":""}  value="016">016</option>
 										<option ${userData.phoneTop1 == "018"?"selected='selected'":""}  value="018">018</option>
 										<option ${userData.phoneTop1 == "019"?"selected='selected'":""}  value="019">019</option>
+										<option ${userData.phoneTop1 == "033"?"selected='selected'":""}  value="033">033</option>
 									</select>
 									 - <input
 									value="${userData.phoneMiddle1}" id="phone2" name="phone2" type="text"
@@ -256,11 +270,20 @@ $(function() {
 						</tbody>
 					</table>
 				</form>
-				<div class="btn">
-					<a href="#" id="modifyBtn"><img
-						src="./images/notice/register_btn.gif" alt="등록" /></a>
-						<a href="javascript:history.go(-1);"><img src="./images/notice/cancel_btn.gif" alt="취소" /></a>
+				
+				<div class="user_btn" >
+					<a style="float: left;" href="#" id="dropout_btn">회원삭제<!-- <img  src="./images/sms/tit_leave_off.gif" alt="회원탈퇴" />--></a>
+					<a style="float: right; margin-left: 3px;" href="javascript: history.back(-1);">취소<!-- <img src="./images/notice/cancel_btn.gif" alt="취소" />--></a>
+					<a  href="#" id="modifyBtn">등록<!-- <img src="./images/notice/register_btn.gif" alt="등록" />--></a>					
 				</div>
+				
+				<%-- 삭제 폼 --%>				
+				<form id="del_frm" action="./UserDeleteAction.ac" method="post" style="float: right;  margin-top: 5px;">
+					<input type="hidden" name="token"  id="token"  value="${token}" />				
+					<input value="${userData.index}" id="del_index" name="del_index" type="hidden" />				
+					<input value="./UserListAction.ac"  name="back_url"  id="back_url" type="hidden" />
+				</form>
+				
 			</div>
 		</div>
 	</div>

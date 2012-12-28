@@ -17,7 +17,7 @@
     .ui-sortable-placeholder { border: 1px dotted black; visibility: visible !important; height: 50px !important; }
     .ui-sortable-placeholder * { visibility: hidden; }
    .selectedGroup {color : #FF4800 !important; font-weight : bold; } 
-	textarea{background-color: #FEF6D0;}   
+	textarea{background-color: #FEF6D0;  font-size: 16px;}	
 </style>
 <script>
 

@@ -66,7 +66,7 @@
 							<li ><a href="./MyMessageView.sm?index=${msg.index}" ><textarea
 									style="width: 135px; height: 108px; margin-left:1px; margin-top: 21.5px; cursor: pointer;"
 									name="${msg.index}">${msg.message}</textarea></a></li>
-							<li>${msg.title}</li>
+							<li><a href="./MyMessageView.sm?index=${msg.index}" >${msg.title}</a></li>
 						</ul>
 					</c:forEach>
 					<div style="display:block; width: 600px; height:140px; padding: 20px 0px 5px 0px;"

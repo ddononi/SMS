@@ -10,7 +10,7 @@
 %>	
 <%-- 헤더  --%>
 <jsp:include page="../modules/header.jsp" />
-<<style>
+<style>
 <!--
 form *{ line-height: 20px; margin: 3px;}
 -->
@@ -61,17 +61,17 @@ form *{ line-height: 20px; margin: 3px;}
 					<input value="" id="index" name="index" type="hidden" />
 					<input type="hidden" value="${groupIndex}"  name="groupIndex"  />							
 				</form>	
-				<%--	검색 처리 --%>
+				<%--	검색 폼 --%>
 				<form style="clear: both; width: 100%; padding:3px; vertical-align: middle;" id="search_frm" action="./AddressListAction.ad" method="get"  >
 					<input value="" name="page" type="hidden" />
 					<input type="hidden" value="${groupIndex}"  name="groupIndex"  />
-					<select id="limit" name="limit" style="float: left; display: inline-block;">
+					<select id="limit" name="limit" style="float: left; display: inline-block; vertical-align: middle; margin-top: 15px; width: 80px;" >
 						<option ${limit == "10"?"selected":""} value="10">10개</option>
 						<option ${limit == "20"?"selected":""} value="20">20개</option>
 						<option ${limit == "30"?"selected":""} value="30">30개</option>
 						<option ${limit == "40"?"selected":""} value="40">40개</option>
 						<option ${limit == "50"?"selected":""} value="50">50개</option>
-					</select>	
+					</select>
 					<div style="float: right; display: inline-block;">
 						<input title="검색할 이름 혹은 전화번호를 입력하세요" style="margin-bottom: 3px;" value="${search}"  class="search" type="text" name="search" id="search" size="20" />
 						<a  href="#"  onclick="return false;" id="search_btn"><img style="margin-bottom:5px;margin-right:5px; right;vertical-align: middle;"  src="./images/base/category_btn.gif" /></a>
@@ -119,10 +119,10 @@ form *{ line-height: 20px; margin: 3px;}
 					</tbody>
 				</table>
 				<div id="buttons" style="float: right;  margin-top: 5px;">
-						<a  href="#excel"  id="excel_btn">엑셀</a>
-						<a  href="#"  id="add_btn">추가</a>
+						<a  href="#"  id="add_btn"  onclick="return false;">추가</a>
 						<a  href="./AddressGroupListAction.ad"  >그룹목록</a>	
-						<a  href="#excel_save_btn"  id="excel_save_btn"   >엑셀 저장</a>					
+						<a  href="#excel"  id="excel_btn"  onclick="return false;">엑셀등록</a>						
+						<a  href="#excel_save_btn"  id="excel_save_btn" onclick="return false;"   >엑셀 저장</a>					
 				</div>	
 				<!-- 엑셀파일 저장하기 -->
 				<form method="post" action="./ExcelWriteAction.ad"  id="excel_save_frm" >
@@ -253,7 +253,6 @@ $(function(){
                 		alert("파일을 입력하세요");
                 		return;
                 	}else if( file.substr(file.lastIndexOf(".") + 1, 3)  != 'xls' ){
-                		alert(file.substr(file.lastIndexOf(".") + 1, 3) );
                 		alert("Excel파일(xls)만 지원합니다.");
                 		return;           		
                 	}
@@ -273,6 +272,11 @@ $(function(){
     
     // 엑셀로 저장
     $("#excel_save_btn").click(function(){
+    	var tr = $.trim($("table:last tbody tr").text());
+    	if(tr == "주소록이 없습니다."){
+    		alert("주소록이 없습니다.");
+    		return;
+    	}
     	$( "#excel_save_frm" ).submit();
     });        
     

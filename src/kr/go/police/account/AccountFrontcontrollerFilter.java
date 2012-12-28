@@ -51,7 +51,10 @@ public class AccountFrontcontrollerFilter implements Filter {
 		
 		// 토큰 처리
 		if(command.equals("/AdminModifyUserAction.ac") ||
-			command.equals("/MyInfoModifyAction.ac") ){
+			command.equals("/MyInfoModifyAction.ac") ||
+			command.equals("/PwdChangePageAction.ac") || 			
+			command.equals("/DropoutAction.ac") ){
+			
 			// 토큰 검사
 			if (!CommandToken.isValid(request)) {
 				response.setContentType("text/html;charset=euc-kr");

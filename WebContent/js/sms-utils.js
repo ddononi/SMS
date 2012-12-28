@@ -36,7 +36,7 @@ String.prototype.isJumin = function() {
 // @return : boolean
 // -----------------------------------------------------------------------------
 String.prototype.isEmail = function() {
-	return (/\w+([-+.]\w+)*@\w+([-.]\w+)*\.[a-zA-Z]{2,4}$/).test(this.trim());
+	return (/\w+([-+.]\w+)*@\w+([-.]\w+)*\.[a-zA-Z]{2,4}$/).test($.trim(this));
 };
 // -----------------------------------------------------------------------------
 // 전화번호 체크 - arguments[0] : 전화번호 구분자
@@ -51,11 +51,13 @@ String.prototype.isPhone = function() {
 // 핸드폰번호 체크 - arguments[0] : 핸드폰 구분자
 // @return : boolean
 // -----------------------------------------------------------------------------
+/*
 String.prototype.isMobile = function() {
 	var arg = arguments[0] ? arguments[0] : "";
 	return eval("(/01[016789]" + arg + "[1-9]{1}[0-9]{2,3}" + arg
 			+ "[0-9]{4}$/).test(this)");
 };
+*/
 
 jQuery.fn.util = {
 	selectAll : function(check) {
@@ -456,6 +458,34 @@ function clipboard(str) {
 	window.clipboardData.setData('Text', str);
 	alert("클립보드에 복사되었습니다.");
 }
+/**
+ * CapsLock 체크
+ */
+function isCapslock(e){
+    e = (e) ? e : window.event;
+    var charCode = false;
+    if (e.which) {
+        charCode = e.which;
+    } else if (e.keyCode) {
+        charCode = e.keyCode;
+    }
+    var shifton = false;
+    if (e.shiftKey) {
+        shifton = e.shiftKey;
+    } else if (e.modifiers) {
+        shifton = !!(e.modifiers & 4);
+    }
+    
+    if (charCode >= 97 && charCode <= 122 && shifton) {
+        return true;
+    }
+
+    if (charCode >= 65 && charCode <= 90 && !shifton) {
+        return true;
+    }
+    return false;
+}
+
 
 $(document).ready(function() {
 	$.myUtil.clock();

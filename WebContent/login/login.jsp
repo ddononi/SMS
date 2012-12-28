@@ -7,7 +7,7 @@
 <link rel="shortcut icon" href="../images/base/police.ico" type="image/ico" />
 <meta http-equiv="Content-Type" content="text/html; charset=euc-kr" />
 <link rel="stylesheet" type="text/css" href="../css/style.css"/>
-<script type="text/javascript" src="../js/jquery-1.8.2.min.js"></script>
+<script type="text/javascript" src="../js/jquery-1.8.3.min.js"></script>
 <script src="../js/cookie.js"></script>
 <script type="text/javascript">
 <!--
@@ -34,6 +34,14 @@ $(function(){
        }
      });	
 	
+	$("#pwd").keypress(function(event){
+	    if ( isCapslock(event) ){
+	        $("#notice_caps").css("visibility", "visible");
+	    }else{
+	    	$("#notice_caps").css("visibility", "hidden");
+	    }
+	});
+	
 	//  입력 검증 처리	
 	$("form").submit(function(){
 		
@@ -58,7 +66,39 @@ $(function(){
 		
 		return true;
 	});
+	
+	function isCapslock(e){
+
+	    e = (e) ? e : window.event;
+
+	    var charCode = false;
+	    if (e.which) {
+	        charCode = e.which;
+	    } else if (e.keyCode) {
+	        charCode = e.keyCode;
+	    }
+
+	    var shifton = false;
+	    if (e.shiftKey) {
+	        shifton = e.shiftKey;
+	    } else if (e.modifiers) {
+	        shifton = !!(e.modifiers & 4);
+	    }
+
+	    if (charCode >= 97 && charCode <= 122 && shifton) {
+	        return true;
+	    }
+
+	    if (charCode >= 65 && charCode <= 90 && !shifton) {
+	        return true;
+	    }
+
+	    return false;
+
+	}
+	
 });
+
 //-->
 </script>
 </head>
@@ -66,7 +106,7 @@ $(function(){
 	<div id="login_wrapper">
 		<!-- login -->
 		<h1 class="logo">
-			<img src="../images/top/logo.gif" alt="충북청SMS" border="0" /></a>
+			<img src="../images/top/logo.gif" alt="강원청SMS" border="0" /></a>
 		</h1>
 		<div class="login_box">
 			<h3>
@@ -81,13 +121,14 @@ $(function(){
 					</p>
 					<p class="pw">
 						<label for="pwd"><img src="../images/login/txt_ow.gif"
-							alt="비밀번호" /></label> <input type="password" id="pwd" name="pwd" value="goqkfkrl01" />
+							alt="비밀번호" /></label> <input title="" type="password" id="pwd" name="pwd" value="" />
 					</p>
 					<p class="btnLogin">
 						<input id="login_btn" type="image" src="../images/login/btn_login.gif" alt="로그인" />
+						<p id="notice_caps" style="text-align:center; margin-top:3px; color:RED; font-weight:bold; visibility: hidden;">Caps Lock이 켜져 있습니다.</p> 
 					</p>
-					<p class="id_send">
-						<input type="checkbox" id="id_fill" name="id_fill" />아이디 저장
+					<p class="id_send" style="margin-top: -3px;" >
+						<input  type="checkbox" id="id_fill" name="id_fill" />아이디 저장
 					</p>
 				</fieldset>
 			</form>

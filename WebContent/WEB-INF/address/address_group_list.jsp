@@ -90,7 +90,7 @@
 					</tbody>
 				</table>
 				<div id="buttons" style="float: right;  margin-top: 5px;">
-						<a  href="#"  id="add_btn">추가</a>
+						<a  href="#"  id="add_btn" onclick="return false;">추가</a>
 				</div>		
 				<div style="clear: both;"></div>				
 				<c:if test="${(empty groups) == false}">

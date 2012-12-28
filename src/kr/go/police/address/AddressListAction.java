@@ -72,7 +72,7 @@ public class AddressListAction implements Action {
 		//	리스트 번호
 		int no = listSize - (page - 1) * limit;		
 		ArrayList<AddressBean> list =
-				(ArrayList<AddressBean>)dao.getAddressList(userIndex, groupIndex, start,  start * limit, what, search);
+				(ArrayList<AddressBean>)dao.getAddressList(userIndex, groupIndex, start,  limit, what, search);
 		// 페이지 네이션 처리
 		String params = "limit=" +limit +  "&search=" + search + "&groupIndex=" + groupIndex;
 		String pagiNation = SMSUtil.makePagiNation(listSize, page, limit, "AddressListAction.ad", params);  

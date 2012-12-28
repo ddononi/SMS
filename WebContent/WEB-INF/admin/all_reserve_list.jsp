@@ -27,10 +27,11 @@
 				<h3>
 					<img src="images/admin/title_reservlist.gif" alt="예약내역" />
 				</h3>
+								
 				<%--	검색 처리 --%>
 				<form style="clear: both; width: 100%; padding:3px; vertical-align: middle;" id="search_frm" action="./AllReserveListAction.sm" method="get"  >
 					<input value="" name="page" type="hidden" />
-					<select id="limit" name="limit" style="float: left; display: inline-block;">
+					<select id="limit" name="limit" style="float: left; display: inline-block;  margin-top:7px; width: 80px; vertical-align: middle;" >
 						<option ${limit == "10"?"selected":""} value="10">10개</option>
 						<option ${limit == "20"?"selected":""} value="20">20개</option>
 						<option ${limit == "30"?"selected":""} value="30">30개</option>

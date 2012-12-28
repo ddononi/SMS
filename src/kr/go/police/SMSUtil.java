@@ -3,6 +3,7 @@ package kr.go.police;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -147,7 +148,11 @@ public class SMSUtil {
 
 		// 현재페이지에서 10개페이지가 넘으면 10개뒤로
 		if (endPage < pageCount) {
-			sb.append("<a href=\"" + url + "?page=" + (startPage + 10)
+			sb.append("<a href=\"" 
+					+ url
+					+ "?page="
+					+ (startPage + 10)
+					+ params					
 					+ "\"><img src=\"images/notice/pageend_next_btn.gif\" /></a>");
 		}
 		sb.append("</div>");
@@ -307,4 +312,30 @@ public class SMSUtil {
 		return yearDir;
 	}	
 
+	
+	/**
+	 * 전화번호 하이픈 넣기
+	 * @param phone
+	 * @return
+	 */
+	public static String addPhoneHyphens(String phone){
+		if(phone.isEmpty()){
+			return "없음";
+		}
+		
+		phone = phone.replaceAll("-", "").trim();
+		if (phone.length() < 11 && phone.length()  > 7) {
+			phone = phone.substring(0, 3) + "-" + phone.substring(3, 6) + "-"
+					+ phone.substring(6);
+		} else if (phone.length()  >= 11) {
+			phone = phone.substring(0, 3) + "-" + phone.substring(3, 7) + "-"
+					+ phone.substring(7);
+		}else{
+			phone =  "없음";
+		}		
+		
+		return phone;
+	} 
+	
+	
 }
