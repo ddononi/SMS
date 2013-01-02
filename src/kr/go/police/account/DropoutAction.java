@@ -30,7 +30,7 @@ public class DropoutAction implements Action {
 			PrintWriter out = response.getWriter();
 			out.println("<script>");
 			out.println("alert('관리자 승인후 로그인할수 있습니다..');");
-			out.println("window.location.href='./LogoutAction.ac';");
+			out.println("window.location.replace('./LogoutAction.ac');");
 			out.println("</script>");	
 		}else{
 			// 가입 실패

@@ -57,13 +57,13 @@ public class AllSendListAction implements Action {
 		int psCode =  (Integer)session.getAttribute("psCode");		
 				
 		int start = (page -1 ) * limit +1;			// 시작 번호
-		int listSize = dao.getSendListCount(search,type, psCode);		// 내 발송 내역 갯수
+		int listSize = dao.getSendAllListCount(search,type, psCode);		// 내 발송 내역 갯수
 		//	리스트 번호
 		int no = listSize - (page - 1) * limit;		
 		// 페이지 네이션 처리
 		String params = "limit=" +limit + "&search=" + search+"&type="+type;
 		String pagiNation = SMSUtil.makePagiNation(listSize, page, limit, "AllSendListAction.sm", params);  
-		ArrayList<SMSBean> list = (ArrayList<SMSBean>)dao.getSendList(start, limit, search, type, psCode);
+		ArrayList<SMSBean> list = (ArrayList<SMSBean>)dao.getSendAllList(start, limit, search, type, psCode);
 		
 		// token 설정
 		String token = CommandToken.set(request);

@@ -49,8 +49,8 @@ public class MyMessageAddAction implements Action {
 			PrintWriter out = response.getWriter();
 			out.println("<script>");
 			out.println("alert('문자함을 추가했습니다.');");
-			out.println("window.location.href='" +
-					"./MyMessageAction.sm?groupIndex=" + groupIndexStr + "';");
+			out.println("window.location.replace('" +
+					"./MyMessageAction.sm?groupIndex=" + groupIndexStr + "');");
 			out.println("</script>");	
 			out.close();
 			return null;			

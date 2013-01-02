@@ -82,8 +82,8 @@ public class ExcelReadAction implements Action, iExcelConstant {
 			PrintWriter out = response.getWriter();
 			out.println("<script>");
 			out.println("alert('" + addedCount + "개의 주소록을 추가하였습니다.');");
-			out.println("window.location.href='./AddressListAction.ad?groupIndex="
-					+ groupIndex + "'");
+			out.println("window.location.replace('./AddressListAction.ad?groupIndex="
+					+ groupIndex + "')");
 			out.println("</script>");
 			out.close();
 			return null;
@@ -138,7 +138,6 @@ public class ExcelReadAction implements Action, iExcelConstant {
 					AddressBean data = new AddressBean();
 					data.setGroupIndex(Integer.valueOf(groupIndex));
 					for (short c = 0; c < cells; c++) {
-						System.out.println("ff");
 						// 행에대한 셀을 하나씩 추출하여 셀 타입에 따라 처리
 						HSSFCell cell = row.getCell(c);
 						if (cell != null) {

@@ -26,7 +26,7 @@ public class MyMessageDeleteAction implements Action {
 			PrintWriter out = response.getWriter();
 			out.println("<script>");
 			out.println("alert('문자함을 삭제하였습니다.');");
-			out.println("window.location.href='./MyMessageAction.sm?groupIndex=" + groupIndex + "' ");
+			out.println("window.location.replace('./MyMessageAction.sm?groupIndex=" + groupIndex + "')");
 			out.println("</script>");	
 			out.close();
 			return null;			

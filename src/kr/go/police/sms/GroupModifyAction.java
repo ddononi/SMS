@@ -29,7 +29,7 @@ public class GroupModifyAction implements Action {
 			PrintWriter out = response.getWriter();
 			out.println("<script>");
 			out.println("alert('그룹을 수정하였습니다.');");
-			out.println("window.location.href='./MyGroupListAction.sm' ");
+			out.println("window.location.replace('./MyGroupListAction.sm')");
 			out.println("</script>");	
 			out.close();
 			return null;			

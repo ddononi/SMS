@@ -1,6 +1,7 @@
 package kr.go.police.address;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -12,6 +13,7 @@ import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import kr.go.police.CommandToken;
 import kr.go.police.LoginCheck;
 import kr.go.police.action.Action;
 
@@ -42,13 +44,27 @@ public class AddressFrontcontrollerFilter implements Filter {
 		HttpServletRequest request = (HttpServletRequest)req;
 		HttpServletResponse response = (HttpServletResponse)res;
 		// url 얻기
-		/*
 		String requestURI = request.getRequestURI();
 		String contextPath = request.getContextPath();
 		String command = requestURI.substring(contextPath.length());
-		*/
 		request.setCharacterEncoding("EUC-KR");
-
+		// 토큰 처리
+		if(command.equals("/AddressDelAction.ad") ||
+			command.equals("/ExcelReadAction.ad") ||
+			command.equals("/AddressAddAction.ad") || 			
+			command.equals("/AddressModifyAction.ad") ){
+			// 토큰 검사
+			if (!CommandToken.isValid(request)) {
+				response.setContentType("text/html;charset=euc-kr");
+				PrintWriter out = response.getWriter();
+				out.println("<script>");
+				out.println("alert('비정상적인 요청입니다.');");
+				out.println("history.back(-1);");
+				out.println("</script>");	
+				CommandToken.set(request);			
+				return;
+			}
+		}
 		// 로그인 여부 확인
 		if(!LoginCheck.checkLogin(request, response)){
 			return;

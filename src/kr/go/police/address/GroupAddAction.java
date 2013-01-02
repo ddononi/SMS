@@ -30,7 +30,7 @@ public class GroupAddAction implements Action {
 			PrintWriter out = response.getWriter();
 			out.println("<script>");
 			out.println("alert('새로운 그룹을 추가하였습니다.');");
-			out.println("window.location.href='./AddressGroupListAction.ad' ");
+			out.println("window.location.replace('./AddressGroupListAction.ad')");
 			out.println("</script>");	
 			out.close();
 			return null;			

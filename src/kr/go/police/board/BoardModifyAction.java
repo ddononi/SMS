@@ -47,7 +47,7 @@ public class BoardModifyAction implements Action {
 			PrintWriter out = response.getWriter();
 			out.println("<script>");
 			out.println("alert('수정되었습니다.');");			
-			out.println("window.location.href='./BoardDetailView.bo?index=" + boardIndex  + "';");
+			out.println("window.location.replace('./BoardDetailView.bo?index=" + boardIndex  + "');");
 			out.println("</script>");	
 			out.close();
 		}else{				// 등록 실패

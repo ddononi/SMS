@@ -7,6 +7,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import kr.go.police.CommandToken;
 import kr.go.police.SMSUtil;
 import kr.go.police.account.UserBean;
 import kr.go.police.action.Action;
@@ -76,7 +77,9 @@ public class AddressListAction implements Action {
 		// 페이지 네이션 처리
 		String params = "limit=" +limit +  "&search=" + search + "&groupIndex=" + groupIndex;
 		String pagiNation = SMSUtil.makePagiNation(listSize, page, limit, "AddressListAction.ad", params);  
+		String token = CommandToken.set(request);		// token 설정
 		
+		request.setAttribute("token", token);		
 		request.setAttribute("no", no);								// 리스트 번호		
 		request.setAttribute("listSize", listSize);					// 총  주소록그룹 갯수
 		request.setAttribute("list", list);								// 주소록 리스트

@@ -24,10 +24,11 @@
 				<h3>
 					<img src="images/notice/title_notice.gif" alt="공지사항" />
 				</h3>
+								
 				<%--	검색 처리 --%>
 				<form style="clear: both; width: 100%; padding:3px; vertical-align: middle;" id="search_frm" action="./NoticeListAction.bo" method="get"  >
 					<input value="" name="page" type="hidden" />
-					<select id="limit" name="limit" style="float: left; display: inline-block;">
+					<select id="limit" name="limit" style="float: left; display: inline-block; vertical-align: middle; margin-top: 10px; width: 80px;" >
 						<option ${limit == "10"?"selected":""} value="10">10개</option>
 						<option ${limit == "20"?"selected":""} value="20">20개</option>
 						<option ${limit == "30"?"selected":""} value="30">30개</option>
@@ -121,6 +122,11 @@ $(function(){
 	
 	// 검색 버튼    
     $("#search_btn").click(function(){
+    	$("#search_frm").submit();
+    });  
+	
+    // 페이지 목록수
+    $("#limit").change(function(){
     	$("#search_frm").submit();
     });  	
     

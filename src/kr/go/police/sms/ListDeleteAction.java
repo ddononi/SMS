@@ -32,7 +32,7 @@ public class ListDeleteAction implements Action {
 			PrintWriter out = response.getWriter();
 			out.println("<script>");
 			out.println("alert('"+count+"개의 리스트를 삭제하였습니다.');");
-			out.println("window.location.href='"+page+"'");
+			out.println("window.location.replace('"+page+"')");
 			out.println("</script>");	
 			out.close();
 			return null;			

@@ -58,14 +58,18 @@ public class MyInfoModifyAction implements Action {
 		data.setEmail(email);
 		data.setUserClass(userClass);
 		// 일반사용자면 다시 미승인으로 처리
-		data.setApprove(!session.getAttribute("class").equals(1));
+		data.setApprove(session.getAttribute("class").equals(3));
 		//	회원 정보 수정 처리
 		if(dao.modifyMyInfo(data)){
 			response.setContentType("text/html;charset=euc-kr");
 			PrintWriter out = response.getWriter();
 			out.println("<script>");
 			out.println("alert('사용자정보를 변경하였습니다.');");
-			out.println("window.location.href='./LogoutAction.ac';");
+			// 관리자가 아닐경우
+			if(!session.getAttribute("class").equals(3)){
+				out.println("alert('관리자 승인 후 사용이 가능합니다.');");	
+			}
+			out.println("window.location.replace('./LogoutAction.ac');");
 			out.println("</script>");	
 		}else{
 			// 가입 실패

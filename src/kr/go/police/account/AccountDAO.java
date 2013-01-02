@@ -392,6 +392,7 @@ public class AccountDAO extends CommonCon {
 		}
 	}	
 	
+	
 	/**
 	 *	유저수구하기
 	 * @param psCode 
@@ -399,17 +400,36 @@ public class AccountDAO extends CommonCon {
 	 * @return
 	 * 	유저수
 	 */
-	protected int getUserListCount(int psCode){
+	protected int getUserListCount(int psCode,String type, String search){
 		int count = 0;
 		try {
 			conn = dataSource.getConnection();
-			String psWhat = "";
+			String sql = "SELECT count(*) FROM user_info WHERE ";
+			if(type.equalsIgnoreCase("name")){	// 이름으로 검색
+				sql += "  f_name like ? ";
+			}else if(type.equalsIgnoreCase("id")){		// 아이디로 검색
+				sql += " f_id like ? ";
+			}else if(type.equalsIgnoreCase("police")){		// 경찰서명으로 검색
+				sql += " f_psname like ? ";
+			}else if(type.equalsIgnoreCase("department")){		// 부서명으로 검색
+				sql += " f_deptname like ? ";
+			}else if(type.equalsIgnoreCase("grade")){		// 계급으로 검색
+				sql += " f_grade like ? ";
+			}else{			// 받는 전화번호로 검색
+				sql += " f_phone1 like ? ";
+			}
 			// 지방청 관리자가 아니고 각 경찰서 관리자 일경우
 			if(psCode != 100){
-				psWhat = " AND f_pscode = " + psCode;
+				sql += " AND f_pscode = " + psCode;
 			}			
-			pstmt = conn.prepareStatement("SELECT count(*) FROM user_info " +
-					"WHERE  1= 1 AND f_approve = 'y' " + psWhat);
+			pstmt = conn.prepareStatement(sql);
+			
+			//이름이나 전화번호 검색시 검색어에 암호화 처리
+			Aria aria = Aria.getInstance();				
+			if(type.equalsIgnoreCase("name") || type.equalsIgnoreCase("phone"))	
+				search=aria.encryptByte2HexStr(search);
+			
+			pstmt.setString(1, "%" + search + "%");
 			rs = pstmt.executeQuery();
 			if(rs.next()){
 				count = rs.getInt(1);
@@ -422,7 +442,6 @@ public class AccountDAO extends CommonCon {
 		}
 		return count;
 	}
-	
 	
 	/**
 	 * 	신규 가입 유저 목록수
@@ -572,16 +591,36 @@ public class AccountDAO extends CommonCon {
 	 * @return
 	 * 	유저수
 	 */
-	protected int getArvListCount(int psCode){
+	protected int getArvListCount(int psCode, String type, String search){
 		int count = 0;
 		try {
 			conn = dataSource.getConnection();
+			String sql = "SELECT count(*) FROM user_info WHERE f_approve='n' AND ";
+			if(type.equalsIgnoreCase("name")){	// 이름으로 검색
+				sql += "  f_name like ? ";
+			}else if(type.equalsIgnoreCase("id")){		// 아이디로 검색
+				sql += " f_id like ? ";
+			}else if(type.equalsIgnoreCase("police")){		// 경찰서명으로 검색
+				sql += " f_psname like ? ";
+			}else if(type.equalsIgnoreCase("department")){		// 부서명으로 검색
+				sql += " f_deptname like ? ";
+			}else if(type.equalsIgnoreCase("grade")){		// 계급으로 검색
+				sql += " f_grade like ? ";
+			}else{			// 받는 전화번호로 검색
+				sql += " f_phone1 like ? ";
+			}
 			String psWhat = "";
 			if(psCode != 100){
 				psWhat = " AND f_pscode = " + psCode;
 			}			
-			pstmt = conn.prepareStatement("SELECT count(*) FROM user_info " +
-					" WHERE f_approve='n' " + psWhat);
+			pstmt = conn.prepareStatement(sql+psWhat);
+			//이름이나 전화번호 검색시 검색어에 암호화 처리
+			Aria aria = Aria.getInstance();				
+			if(type.equalsIgnoreCase("name") || type.equalsIgnoreCase("phone"))	
+				search=aria.encryptByte2HexStr(search);
+			
+			pstmt.setString(1, "%" + search + "%");
+			
 			rs = pstmt.executeQuery();
 			if(rs.next()){
 				count = rs.getInt(1);
@@ -601,16 +640,35 @@ public class AccountDAO extends CommonCon {
 	 * @return
 	 * 	유저수
 	 */
-	protected int getQuserListCount(int psCode){
+	protected int getQuserListCount(int psCode, String type, String search){
 		int count = 0;
 		try {
 			conn = dataSource.getConnection();
+			String sql = "SELECT count(*) FROM user_info WHERE f_visit_date < NOW()- interval 3 month AND ";
+			if(type.equalsIgnoreCase("name")){	// 이름으로 검색
+				sql += "  f_name like ? ";
+			}else if(type.equalsIgnoreCase("id")){		// 아이디로 검색
+				sql += " f_id like ? ";
+			}else if(type.equalsIgnoreCase("police")){		// 경찰서명으로 검색
+				sql += " f_psname like ? ";
+			}else if(type.equalsIgnoreCase("department")){		// 부서명으로 검색
+				sql += " f_deptname like ? ";
+			}else if(type.equalsIgnoreCase("grade")){		// 계급으로 검색
+				sql += " f_grade like ? ";
+			}else{			// 받는 전화번호로 검색
+				sql += " f_phone1 like ? ";
+			}
 			String psWhat = "";
 			if(psCode != 100){
 				psWhat = " AND f_pscode = " + psCode;
-			}				
-			pstmt = conn.prepareStatement("SELECT count(*) FROM user_info WHERE" +
-					" f_visit_date < NOW()- interval 3 month " + psWhat);
+			}			
+			pstmt = conn.prepareStatement(sql+psWhat);
+			//이름이나 전화번호 검색시 검색어에 암호화 처리
+			Aria aria = Aria.getInstance();				
+			if(type.equalsIgnoreCase("name") || type.equalsIgnoreCase("phone"))	
+				search=aria.encryptByte2HexStr(search);
+			
+			pstmt.setString(1, "%" + search + "%");			
 			rs = pstmt.executeQuery();
 			if(rs.next()){
 				count = rs.getInt(1);
@@ -623,38 +681,56 @@ public class AccountDAO extends CommonCon {
 		}
 		return count;
 	}
-	
 
 	/**
 	 * 유저 목록 가져오기
 	 * @param search
+	 * 		검색어
 	 * @param start
 	 * 		시작 번호
 	 * @param end
 	 * 		마지막 번호
 	 * @param psCode 
 	 * 		경찰서 코드
+	 * @param type
+	 * 		검색타입
 	 * @return
 	 */
-	protected List<UserBean> getUserList(final String search, int start, int end, int psCode){
+	protected List<UserBean> getUserList(String search, int start, int end, int psCode, String type){
 		List<UserBean> list = new ArrayList<UserBean>();
 		UserBean data = null;		
 		try {
 			conn = dataSource.getConnection();
-			String psWhat = "";
+			Aria aria = Aria.getInstance();	
+			String sql = "SELECT * FROM user_info WHERE ";
+			if(type.equalsIgnoreCase("name")){	// 이름으로 검색				
+				sql += "  f_name like ? ";
+			}else if(type.equalsIgnoreCase("id")){		// 아이디로 검색
+				sql += " f_id like ? ";
+			}else if(type.equalsIgnoreCase("police")){		// 경찰서명으로 검색
+				sql += " f_psname like ? ";
+			}else if(type.equalsIgnoreCase("department")){		// 부서명으로 검색
+				sql += " f_deptname like ? ";
+			}else if(type.equalsIgnoreCase("grade")){		// 계급으로 검색
+				sql += " f_grade like ? ";
+			}else{			// 받는 전화번호로 검색				
+				sql += " f_phone1 like ? ";
+			}
 			// 지방청 관리자가 아니고 각 경찰서 관리자 일경우
 			if(psCode != 100){
-				psWhat = " AND f_pscode = " + psCode;
+				sql += " AND f_pscode = " + psCode;
 			}
-			pstmt = conn.prepareStatement("SELECT * FROM user_info WHERE " +
-					" (f_id like ? OR f_name like ?)  AND f_approve = 'y' " +
-						psWhat + " ORDER BY f_index DESC LIMIT ?, ? ");
-			pstmt.setString(1, "%" + search + "%");	
-			pstmt.setString(2, "%" + search + "%");
-			pstmt.setInt(3, start -1);	
-			pstmt.setInt(4, end);			
+			
+			pstmt = conn.prepareStatement(sql+ " ORDER BY f_index DESC LIMIT ?, ? ");			
+			
+			if(type.equalsIgnoreCase("name") || type.equalsIgnoreCase("phone"))	//이름이나 전화번호 검색시 검색어에 암호화 처리
+				search=aria.encryptByte2HexStr(search);
+			
+			pstmt.setString(1, "%" + search + "%");			
+			pstmt.setInt(2, start -1);	
+			pstmt.setInt(3, end);			
 			rs = pstmt.executeQuery();
-			Aria aria = Aria.getInstance();	
+			
 			while(rs.next())	{
 				// 인덱스, 아이디, 이름, 경찰서명, 계급, 부서명, 등급
 			    data = new UserBean();	
@@ -689,25 +765,40 @@ public class AccountDAO extends CommonCon {
 	 * 		마지막 번호
 	 * @return
 	 */	
-	protected List<UserBean> getArvList(final String search, int start, int end, int psCode){
+	protected List<UserBean> getArvList(String search, int start, int end, int psCode, String type){
 		List<UserBean> list = new ArrayList<UserBean>();
 		UserBean data = null;		
 		try {
 			conn = dataSource.getConnection();
-			// 지방청 관리자가 아니고 각 경찰서 관리자 일경우
-			String psWhat = "";
-			if(psCode != 100){
-				psWhat = " AND f_pscode = " + psCode;
-			}			
-			pstmt = conn.prepareStatement("SELECT * FROM user_info WHERE (f_approve='n') AND" +
-					" (f_id like ? OR f_name like ?) " + psWhat + 
-					" ORDER BY f_index DESC LIMIT ?, ?");
-			pstmt.setString(1, "%" + search + "%");	
-			pstmt.setString(2, "%" + search + "%");
-			pstmt.setInt(3, start -1);	
-			pstmt.setInt(4, end);			
-			rs = pstmt.executeQuery();
+			String sql = "SELECT * FROM user_info WHERE f_approve='n' AND ";
 			Aria aria = Aria.getInstance();	
+			if(type.equalsIgnoreCase("name")){	// 이름으로 검색				
+				sql += "  f_name like ? ";
+			}else if(type.equalsIgnoreCase("id")){		// 아이디로 검색
+				sql += " f_id like ? ";
+			}else if(type.equalsIgnoreCase("police")){		// 경찰서명으로 검색
+				sql += " f_psname like ? ";
+			}else if(type.equalsIgnoreCase("department")){		// 부서명으로 검색
+				sql += " f_deptname like ? ";
+			}else if(type.equalsIgnoreCase("grade")){		// 계급으로 검색
+				sql += " f_grade like ? ";
+			}else{			// 받는 전화번호로 검색				
+				sql += " f_phone1 like ? ";
+			}
+			// 지방청 관리자가 아니고 각 경찰서 관리자 일경우			
+			if(psCode != 100){
+				sql += " AND f_pscode = " + psCode;
+			}			
+			pstmt = conn.prepareStatement(sql+" ORDER BY f_index DESC LIMIT ?, ?");
+			
+			if(type.equalsIgnoreCase("name") || type.equalsIgnoreCase("phone"))	//이름이나 전화번호 검색시 검색어에 암호화 처리
+				search=aria.encryptByte2HexStr(search);
+			
+			pstmt.setString(1, "%" + search + "%");	
+			pstmt.setInt(2, start -1);	
+			pstmt.setInt(3, end);			
+			rs = pstmt.executeQuery();
+
 			while(rs.next())	{
 				// 인덱스, 아이디, 이름, 경찰서명, 계급, 부서명, 등급
 			    data = new UserBean();	
@@ -732,6 +823,8 @@ public class AccountDAO extends CommonCon {
 			connClose();
 		}
 	}
+	
+	
 	/**
 	 * 휴면계정 목록 가져오기
 	 * @param search
@@ -743,25 +836,39 @@ public class AccountDAO extends CommonCon {
 	 * 		경찰서 코드
 	 * @return
 	 */	
-	protected List<UserBean> getQuserList(final String search, int start, int end, int psCode){
+	protected List<UserBean> getQuserList(String search, int start, int end, int psCode, String type){
 		List<UserBean> list = new ArrayList<UserBean>();
 		UserBean data = null;	
 		try {
 			conn = dataSource.getConnection();
-			// 지방청 관리자가 아니고 각 경찰서 관리자 일경우
-			String psWhat = "";
-			if(psCode != 100){
-				psWhat = " AND f_pscode = " + psCode;
-			}				
-			pstmt = conn.prepareStatement("SELECT * FROM user_info WHERE " +
-					" f_visit_date < NOW() - interval 3 month AND (f_id like ? OR f_name like ?) " +
-					psWhat + " ORDER BY f_index DESC LIMIT ?, ?");
-			pstmt.setString(1, "%" + search + "%");	
-			pstmt.setString(2, "%" + search + "%");
-			pstmt.setInt(3, start -1);	
-			pstmt.setInt(4, end);			
-			rs = pstmt.executeQuery();
+			String sql = "SELECT * FROM user_info WHERE f_visit_date < NOW() - interval 3 month AND ";
 			Aria aria = Aria.getInstance();	
+			if(type.equalsIgnoreCase("name")){	// 이름으로 검색				
+				sql += "  f_name like ? ";
+			}else if(type.equalsIgnoreCase("id")){		// 아이디로 검색
+				sql += " f_id like ? ";
+			}else if(type.equalsIgnoreCase("police")){		// 경찰서명으로 검색
+				sql += " f_psname like ? ";
+			}else if(type.equalsIgnoreCase("department")){		// 부서명으로 검색
+				sql += " f_deptname like ? ";
+			}else if(type.equalsIgnoreCase("grade")){		// 계급으로 검색
+				sql += " f_grade like ? ";
+			}else{			// 받는 전화번호로 검색				
+				sql += " f_phone1 like ? ";
+			}
+			// 지방청 관리자가 아니고 각 경찰서 관리자 일경우			
+			if(psCode != 100){
+				sql += " AND f_pscode = " + psCode;
+			}			
+			pstmt = conn.prepareStatement(sql+" ORDER BY f_index DESC LIMIT ?, ?");
+			
+			if(type.equalsIgnoreCase("name") || type.equalsIgnoreCase("phone"))	//이름이나 전화번호 검색시 검색어에 암호화 처리
+				search=aria.encryptByte2HexStr(search);
+			
+			pstmt.setString(1, "%" + search + "%");	
+			pstmt.setInt(2, start -1);	
+			pstmt.setInt(3, end);			
+			rs = pstmt.executeQuery();
 			while(rs.next())	{
 				// 인덱스, 아이디, 이름, 경찰서명, 계급, 부서명, 등급
 			    data = new UserBean();	

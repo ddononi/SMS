@@ -10,7 +10,7 @@ import kr.go.police.action.Action;
 import kr.go.police.action.ActionForward;
 
 /**
- *	문자함 삭제 action
+ *	비밀번호 변경 action
  */
 public class PwdResetAction implements Action {
 	//비밀번호 설정

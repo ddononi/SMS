@@ -440,7 +440,7 @@ public class AddressDAO extends CommonCon {
 			pstmt.setInt(1, userIndex);						// 유저 인덱스
 			pstmt.setInt(2, groupIndex);					// 그룹 인덱스					
 			pstmt.executeUpdate();	
-			connClose();
+			
 			// 해당 그룹 삭제
 			sql = "DELETE FROM address_book_group WHERE 1 =1 AND" +
 					" f_user_index = ? AND f_index = ? ";

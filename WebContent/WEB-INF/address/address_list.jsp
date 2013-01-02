@@ -19,6 +19,7 @@ form *{ line-height: 20px; margin: 3px;}
 	<div id="dialog-modify-form" title="주소록 변경">
 		<form method="post" id="modifyFrm" action="./AddressModifyAction.ad" style="margin-top: 20px">
 		    <fieldset>
+		    	<input type="hidden" name="token"  id="token"  value="${token}" />	
 				<input type="hidden" id="groupIndex" value="${groupIndex}"  name="groupIndex"  />		    
 				<input type="hidden" id="index"  value=""  name="index"  />
 				<label>이름 : </label>	
@@ -31,6 +32,7 @@ form *{ line-height: 20px; margin: 3px;}
 	<div id="dialog-add-form" title="주소록 추가">
 		<form method="post" id="addFrm" action="./AddressAddAction.ad" style="margin-top: 20px">
 		    <fieldset>
+		    	<input type="hidden" name="token"  id="token"  value="${token}" />	
 				<input type="hidden" value="${groupIndex}"  name="groupIndex"  />			    
 				<label>이름 : </label>	
 		        <input type="text" size="30"  class="search" name="peopleName"  id="peopleName" title="이름을 입력하세요" class="text ui-widget-content ui-corner-all" /><br/>
@@ -44,6 +46,7 @@ form *{ line-height: 20px; margin: 3px;}
 		<form id="excel_frm" method="post" action="ExcelReadAction.ad" enctype="multipart/form-data">
 				<input size="30"  id="excel_file" type="file" name="filename" />
 				<input type="hidden" value="${groupIndex}"  name="groupIndex"  />
+				<input type="hidden" name="token"  id="token"  value="${token}" />	
 		</form>	
 	</div>
 	<div id="wrapper">
@@ -59,7 +62,8 @@ form *{ line-height: 20px; margin: 3px;}
 				<!--  주소록 삭제 -->
 				<form method="post"  id="delForm" action="./AddressDelAction.ad">
 					<input value="" id="index" name="index" type="hidden" />
-					<input type="hidden" value="${groupIndex}"  name="groupIndex"  />							
+					<input type="hidden" value="${groupIndex}"  name="groupIndex"  />
+					<input type="hidden" name="token"  id="token"  value="${token}" />													
 				</form>	
 				<%--	검색 폼 --%>
 				<form style="clear: both; width: 100%; padding:3px; vertical-align: middle;" id="search_frm" action="./AddressListAction.ad" method="get"  >

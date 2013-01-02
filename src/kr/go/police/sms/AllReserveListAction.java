@@ -57,13 +57,13 @@ public class AllReserveListAction implements Action {
 		int psCode =  (Integer)session.getAttribute("psCode");				
 		
 		int start = (page -1 ) * limit +1;												// 시작 번호
-		int listSize = dao.getReserveListCount(search, type, psCode);		// 예약 갯수
+		int listSize = dao.getReserveAllListCount(search, type, psCode);		// 예약 갯수
 		//	리스트 번호
 		int no = listSize - (page - 1) * limit;		
 		// 페이지네이션 처리
 		String params = "limit=" +limit + "&search=" + search+"&type="+type;
 		String pagiNation = SMSUtil.makePagiNation(listSize, page, limit, "AllReserveListAction.sm", params);  
-		ArrayList<SMSBean> list = (ArrayList<SMSBean>)dao.getReserveList(start, limit, search, type, psCode);
+		ArrayList<SMSBean> list = (ArrayList<SMSBean>)dao.getReserveAllList(start, limit, search, type, psCode);
 		
 		// token 설정
 		String token = CommandToken.set(request);

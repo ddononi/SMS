@@ -17,6 +17,7 @@ public class AddressDelAction implements Action {
 	@Override
 	public ActionForward execute(HttpServletRequest request,
 			HttpServletResponse response) throws Exception {
+		ActionForward forward = new ActionForward();		
 		AddressDAO dao = new AddressDAO();
 		// 해당 주소록인덱스
 		String index = (String)request.getParameter("index");
@@ -27,8 +28,8 @@ public class AddressDelAction implements Action {
 			response.setContentType("text/html;charset=euc-kr");
 			PrintWriter out = response.getWriter();
 			out.println("<script>");
-			out.println("alert('주소록을 삭제하였습니다.');");
-			out.println("window.location.href='./AddressListAction.ad?groupIndex=" + groupIndex + "'");
+			out.println("alert('해당 주소록을 삭제하였습니다.');");
+			out.println("window.location.replace('./AddressListAction.ad?groupIndex=" + groupIndex + "')");
 			out.println("</script>");	
 			out.close();
 			return null;			

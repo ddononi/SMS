@@ -57,7 +57,7 @@ public class JoinAction implements Action {
 			PrintWriter out = response.getWriter();
 			out.println("<script>");
 			out.println("alert('회원가입이 정상처리 되었습니다. 관리자 승인후 이용이 가능합니다.');");
-			out.println("window.location.href='./login/login.jsp';");
+			out.println("window.location.replace('./login/login.jsp');");
 			out.println("</script>");	
 			out.close();			
 		}else{

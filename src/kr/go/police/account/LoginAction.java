@@ -47,7 +47,7 @@ public class LoginAction implements Action {
 				PrintWriter out = response.getWriter();			
 				out.println("<script>");				
 				out.println("alert('비밀번호를 변경하신지 3개월이 지났습니다.');");	
-				out.println("window.location.href='./PwdModifyAction.ac?index="+userIndexs+"&id="+id+"'");
+				out.println("window.location.replace('./PwdModifyAction.ac?index="+userIndexs+"&id="+id+"')");
 				out.println("</script>");	
 				out.close();
 				return null;

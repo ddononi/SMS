@@ -33,7 +33,7 @@ public class PwdChangeAction implements Action {
 				PrintWriter out = response.getWriter();			
 				out.println("<script>");				
 				out.println("alert('비밀번호가 변경 되었습니다.');");	
-				out.println("window.location.href='./"+url+"'");
+				out.println("window.location.replace('./"+url+"')");
 				out.println("</script>");	
 				out.close();;
 				return null;					

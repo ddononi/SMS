@@ -50,7 +50,7 @@ public class AdminBoardReplyWriteAction implements Action {
 			response.setContentType("text/html;charset=euc-kr");
 			PrintWriter out = response.getWriter();
 			out.println("<script>");
-			out.println("window.location.href='./AdminBoardDetailView.bo?index=" +index + "';");
+			out.println("window.location.replace('./AdminBoardDetailView.bo?index=" +index + "');");
 			out.println("</script>");	
 			out.close();
 		}else{

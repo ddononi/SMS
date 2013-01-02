@@ -20,6 +20,28 @@
 				<h3>
 					<img src="images/admin/title_memberlist.gif" alt="공지사항" />
 				</h3>
+				<%--	검색 처리 --%>
+				<form style="clear: both; width: 100%; padding:3px; vertical-align: middle;" id="search_frm" action="./UserListAction.ac" method="get"  >
+					<select id="limit" name="limit">
+						<option ${limit == "10"?"selected":""} value="10">10개</option>
+						<option ${limit == "20"?"selected":""} value="20">20개</option>
+						<option ${limit == "30"?"selected":""} value="30">30개</option>
+						<option ${limit == "40"?"selected":""} value="40">40개</option>
+						<option ${limit == "50"?"selected":""} value="50">50개</option>
+					</select>
+					<div style="float: right; display: inline-block;">	
+					<select id=type name="type">
+						<option value="id" ${type == "id"?"selected":""} >아이디</option>
+						<option value="name"  ${type == "name"?"selected":""} >이름</option>					
+						<option value="police" ${type == "police"?"selected":""} >경찰서</option>
+						<option value="department" ${type == "department"?"selected":""} >부서</option>
+						<option value="grade" ${type == "grade"?"selected":""} >계급</option>
+						<option value="phone" ${type == "phone"?"selected":""} >전화번호</option>
+					</select>										
+						<input title="검색어를 입력하세요" style="margin-bottom: 3px;" value="${search}"  class="search" type="text" name="search" id="search" size="20" />
+						<a  href="#"  onclick="return false;" id="search_btn"><img style="margin-bottom:5px;margin-right:5px; right;vertical-align: middle;"  src="./images/base/category_btn.gif" /></a>
+					</div>
+				</form>	
 				<!--게시판-->
 				<table id="usersList" width="100%" border="0" cellpadding="0" cellspacing="0">
 				<!-- 
@@ -99,6 +121,25 @@ $(function(){
     	var $this = $(this);    	
     	$this.find("td").removeClass("hover");
     	//$this.find("a").css("color", "#8b8b8b"); 
+    });
+	//	입력창 에서 엔터 버튼 입력시 폼전송
+    $("#search").tooltip().keydown(function(event){
+	       if(event.keyCode == 13){
+	    	   $("#search_frm").submit();
+	       }
+    });	     
+	// 검색 버튼    
+    $("#search_btn").click(function(){
+    	$("#search_frm").submit();
+    });  
+	
+    $("#limit").change(function(){
+    	$("#search_frm").submit();
+    });
+    
+    $("#limit").change(function(){
+    	$("#frm").submit();
+    	//window.location.href="SmsSendResultAction.sm?limit=" + $(this).val();
     });
 
     $(".phone").addHyphen();

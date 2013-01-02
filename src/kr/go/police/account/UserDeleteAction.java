@@ -43,7 +43,7 @@ public class UserDeleteAction implements Action {
 				out.println("window.location.href='" + backUrl + "'");			
 			}else{
 				out.println("alert('"+count+"¸íÀÇ À¯Àú¸¦ Å»Åð½ÃÄ×½À´Ï´Ù.');");
-				out.println("window.location.href='./QuiescenceListAction.ac'");
+				out.println("window.location.replace('./QuiescenceListAction.ac')");
 			}
 			out.println("</script>");	
 			out.close();

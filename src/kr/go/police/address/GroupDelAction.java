@@ -28,7 +28,7 @@ public class GroupDelAction implements Action {
 			PrintWriter out = response.getWriter();
 			out.println("<script>");
 			out.println("alert('그룹을 삭제하였습니다.');");
-			out.println("window.location.href='./AddressGroupListAction.ad' ");
+			out.println("window.location.replace('./AddressGroupListAction.ad')");
 			out.println("</script>");	
 			out.close();
 			return null;			

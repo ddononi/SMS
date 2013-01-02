@@ -29,7 +29,7 @@ public class BoardDeleteAction implements Action {
 			PrintWriter out = response.getWriter();
 			out.println("<script>");
 			out.println("alert('삭제되었습니다.');");			
-			out.println("window.location.href='./BoardListAction.bo';");
+			out.println("window.location.replace('./BoardListAction.bo');");
 			out.println("</script>");	
 			out.close();
 		}else{				// 등록 실패

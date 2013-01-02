@@ -40,8 +40,8 @@ public class MyMessageModifyAction implements Action {
 			PrintWriter out = response.getWriter();
 			out.println("<script>");
 			out.println("alert('문자함을 수정했습니다.');");
-			out.println("window.location.href='" +
-					"./MyMessageAction.sm?groupIndex=" + groupIndexStr + "';");
+			out.println("window.location.replace('" +
+					"./MyMessageAction.sm?groupIndex=" + groupIndexStr + "');");
 			out.println("</script>");	
 			out.close();
 			return null;			

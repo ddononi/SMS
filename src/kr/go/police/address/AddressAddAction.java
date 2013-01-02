@@ -38,7 +38,7 @@ public class AddressAddAction implements Action {
 			PrintWriter out = response.getWriter();
 			out.println("<script>");
 			out.println("alert('새로운 주소록을 추가하였습니다.');");
-			out.println("window.location.href='./AddressListAction.ad?groupIndex=" + groupIndex + "'");
+			out.println("window.location.replace('./AddressListAction.ad?groupIndex=" + groupIndex + "')");
 			out.println("</script>");	
 			out.close();
 			return null;			

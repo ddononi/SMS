@@ -30,7 +30,7 @@ public class AdminBoardDeleteAction implements Action {
 			PrintWriter out = response.getWriter();
 			out.println("<script>");
 			out.println("alert('삭제되었습니다.');");			
-			out.println("window.location.href='./AdminBoardListAction.bo';");
+			out.println("window.location.replace('./AdminBoardListAction.bo');");
 			out.println("</script>");	
 			out.close();
 		}else{				// 등록 실패

@@ -82,7 +82,7 @@
 				</table>
 				<c:if test="${size < 10}">
 					<div style="float: right;display: inline-block;margin-top: 5px;">
-						<a href="#"  id="add_btn">추가</a>
+						<a href="#"  id="add_btn" onclick="return false;">추가</a>
 					</div>
 				</c:if>					
 			</div>

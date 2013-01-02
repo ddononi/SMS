@@ -10,6 +10,7 @@
 .box{ display:inline-block;  margin: 0px 10px 20px 10px;
  text-align: center; background: url('./images/sms/sms_back.gif') no-repeat center top;}
  .box textarea{background-color: #FEF6D0;}
+ select{width:100px;]}
 </style>
 <script>
 	$(function() {
@@ -47,7 +48,7 @@
 				<h3>
 					<img src="./images/lettersend/title_manage.gif" alt="내문자함" />
 				</h3>
-				<p class="choice_gruop" style="vertical-align: middle;">
+				<p class="choice_gruop" style="vertical-align: middle;margin-top: 10px;">
 					<select id="group_select">
 						<c:forEach var="group" items="${groups}">
 							<option ${groupIndex ==group.index?'selected':''}

@@ -31,7 +31,7 @@ public class AddressModifyAction implements Action {
 			PrintWriter out = response.getWriter();
 			out.println("<script>");
 			out.println("alert('주소록을 수정하였습니다.');");
-			out.println("window.location.href='./AddressListAction.ad?groupIndex=" + groupIndex + "'");
+			out.println("window.location.replace('./AddressListAction.ad?groupIndex=" + groupIndex + "')");
 			out.println("</script>");	
 			out.close();
 			return null;			

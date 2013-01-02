@@ -87,7 +87,7 @@ public class NoticeModifyAction implements Action {
 			PrintWriter out = response.getWriter();
 			out.println("<script>");
 			out.println("alert('공지사항을 수정하였습니다.');");			
-			out.println("window.location.href='./AdminNoticeListAction.bo';");
+			out.println("window.location.replace('./AdminNoticeListAction.bo');");
 			out.println("</script>");	
 			out.close();
 		}else{				// 등록 실패

@@ -19,18 +19,6 @@ public class BoardWriteAction implements Action {
 	public ActionForward execute(HttpServletRequest request,
 			HttpServletResponse response) throws Exception {
 		
-		// 토큰 검사
-		if (!CommandToken.isValid(request)) {
-			response.setContentType("text/html;charset=euc-kr");
-			PrintWriter out = response.getWriter();
-			out.println("<script>");
-			out.println("alert('비상적인 요청입니다.');");
-			out.println("history.back(-1);");
-			out.println("</script>");	
-			CommandToken.set(request);			
-			return null;
-		}
-		
 		request.setCharacterEncoding("euc-kr");
 		// 사용자 이름, 인덱스 얻기
 		HttpSession session = request.getSession();
@@ -57,7 +45,7 @@ public class BoardWriteAction implements Action {
 			PrintWriter out = response.getWriter();
 			out.println("<script>");
 			out.println("alert('문의를 등록하였습니다.');");			
-			out.println("window.location.href='./BoardListAction.bo';");
+			out.println("window.location.replace('./BoardListAction.bo');");
 			out.println("</script>");	
 			out.close();
 		}else{				// 등록 실패

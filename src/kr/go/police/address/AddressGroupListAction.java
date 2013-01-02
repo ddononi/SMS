@@ -71,6 +71,14 @@ public class AddressGroupListAction implements Action {
 		request.setAttribute("pagiNation", pagiNation);			// 페이지네이션
 		forward.setPath("./WEB-INF/address/address_group_list.jsp");
 
+		//  캐쉬 없애기
+		response.setHeader("Cache-Control","no-store");   
+		response.setHeader("Pragma","no-cache");   
+		response.setDateHeader("Expires",0);   
+		if (request.getProtocol().equals("HTTP/1.1")) {
+		        response.setHeader("Cache-Control", "no-cache");
+		}
+		
 		return forward;
 	}
 

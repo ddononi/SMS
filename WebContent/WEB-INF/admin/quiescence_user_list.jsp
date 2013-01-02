@@ -21,6 +21,28 @@
 				<h3>
 					<img src="images/admin/title_virgin.gif" alt="미사용회원" />
 				</h3>
+				<%--	검색 처리 --%>
+				<form style="clear: both; width: 100%; padding:3px; vertical-align: middle;" id="search_frm" action="./QuiescenceListAction.ac" method="get"  >
+					<select id="limit" name="limit">
+						<option ${limit == "10"?"selected":""} value="10">10개</option>
+						<option ${limit == "20"?"selected":""} value="20">20개</option>
+						<option ${limit == "30"?"selected":""} value="30">30개</option>
+						<option ${limit == "40"?"selected":""} value="40">40개</option>
+						<option ${limit == "50"?"selected":""} value="50">50개</option>
+					</select>
+					<div style="float: right; display: inline-block;">	
+					<select id=type name="type">
+						<option value="id" ${type == "id"?"selected":""} >아이디</option>
+						<option value="name"  ${type == "name"?"selected":""} >이름</option>					
+						<option value="police" ${type == "police"?"selected":""} >경찰서</option>
+						<option value="department" ${type == "department"?"selected":""} >부서</option>
+			    <!-- <option value="grade" ${type == "grade"?"selected":""} >계급</option> -->
+						<option value="phone" ${type == "phone"?"selected":""} >전화번호</option>
+					</select>										
+						<input title="검색어를 입력하세요" style="margin-bottom: 3px;" value="${search}"  class="search" type="text" name="search" id="search" size="20" />
+						<a  href="#"  onclick="return false;" id="search_btn"><img style="margin-bottom:5px;margin-right:5px; right;vertical-align: middle;"  src="./images/base/category_btn.gif" /></a>
+					</div>
+				</form>	
 				<!--게시판-->
 				<form method=post action="#">	</form>			
 				<table id="usersList" width="100%" border="0" cellpadding="0" cellspacing="0">
@@ -32,6 +54,7 @@
 							<th>아이디</th>							
 							<th>경찰서</th>
 							<th>부서</th>
+							<th>전화번호</th>							
 							<th>접속시간</th>														
 						</tr>
 					</thead>
@@ -53,19 +76,22 @@
 					   		   <%=no--%>
 					       </td>						
 							<td>					
-					   		   <a href="./UserDetailAction.ac?index=${user.index}" >${user.name}</a>
+					   		   ${user.name}
 					       </td>
 							<td>					
-					   		  <a href="./UserDetailAction.ac?index=${user.index}" >${user.id}</a>
+					   		  ${user.id}
 					       </td>						       
 							<td>					
-					   		   <a href="./UserDetailAction.ac?index=${user.index}" >${user.psName}</a>
+					   		   ${user.psName}
 					       </td>					
 							<td>					
-					   		   <a href="./UserDetailAction.ac?index=${user.index}" >${user.deptName}</a>
+					   		   ${user.deptName}
 					       </td>	
+							<td class="phone">					
+					   		   ${user.phone1}
+					       </td>				
 							<td>					
-					   		  <a href="./UserDetailAction.ac?index=${user.index}" >${user.visitDate}</a>
+					   		  ${user.visitDate}
 					       </td>						       			       					       
 					     </tr> 
 					</c:forEach> 
@@ -74,7 +100,7 @@
 				
 				<form id="del_frm" action="./UserDeleteAction.ac" method="post" style="float: right;  margin-top: 5px;">
 					<input value=""  name="del_index"  id="del_index" type="hidden" />
-					<a href="#" onclick="return false;" id="del_btn">회원삭제</a>
+					<a href="#" onclick="return false;" id="del_btn">유저탈퇴</a>
 				</form>
 				<div style="clear: both;"></div>
 				 <c:if test="${(empty userList) == false}">
@@ -147,6 +173,20 @@ $(function(){
   $("#limit").change(function(){
   	$("#frm").submit();
   });
+  
+//검색 버튼    
+  $("#search_btn").click(function(){
+  	$("#search_frm").submit();
+  });  
+	
+  $("#limit").change(function(){
+  	$("#search_frm").submit();
+  });
+  
+  $(".phone").addHyphen();
+  
+  	//window.location.href="SmsSendResultAction.sm?limit=" + $(this).val();
+
 
 
   $("#top_menu1").attr("data-on", "on");
