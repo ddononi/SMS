@@ -27,7 +27,7 @@
 <style>
 img{vertical-align:middle;margin:0;padding:0; border: none;}
 .myTabs{list-style:none;height:30px;border-bottom:1px solid #666;margin:0 !important;padding:0;}
-.myTabs li{float:left;font-weight:700;text-indent:0;list-style-image:none !important;margin:0 !important;padding:0;}
+.myTabs li{float:left;font-weight:500;text-indent:0;list-style-image:none !important;margin:0 !important;padding:0;}
 .myTabs a{background:url(./images/sms/tabs.png) no-repeat -652px 0;font-size:11px;display:block;height:30px;line-height:30px;width:111px;text-align:center;text-decoration:none;color:#000;position:relative;top:1px;margin:0;padding:0;}
 .myTabs a:active{outline:none;}
 .myTabs a:hover{background-position:-652px -31px;color:#fff;}
@@ -53,8 +53,8 @@ iframe{width:100%;height:100%;}
 #sreachBar label{font-size:12px;color:#333;font-weight:700;margin-right:10px;}
 #sreachBar select{color:#666;}
 #sreachBar img{margin-left:5px;margin-right:15px;cursor:pointer;_margin-bottom:6px;}
-#searchedList{width:66%;height:300px;float:left;border:1px solid #ccc;overflow:hidden;margin:10px 0 10px 10px;}
-#selectableList{_margin-left:5px;float:left;width:30%;height:300px;margin:10px 0 10px 10px;}
+#searchedList{width:66%;height:200px;float:left;border:1px solid #ccc;overflow:hidden;margin:10px 0 10px 10px;}
+#selectableList{_margin-left:5px;float:left;width:30%;height:200px;margin:10px 0 10px 10px;}
 #inout{clear:both;text-align:center;}
 #inout img{margin-left:5px;cursor:pointer;}
 #selectedList{background-color:#fff;height:200px;margin:10px;}

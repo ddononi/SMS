@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import kr.go.police.CommandToken;
 import kr.go.police.action.Action;
 import kr.go.police.action.ActionForward;
 
@@ -169,8 +170,12 @@ public class ExcelReadAction implements Action, iExcelConstant {
 								System.out.println("name : " + value);
 							} else if (c == PHONE_CMN) { // 전화번호 칼럼
 								value = value.trim().replaceAll("-", "");
-								data.setPhone(value);
-								list.add(data); // 리스트에 담기
+								try{
+									Integer.valueOf(value);
+									data.setPhone(value);
+									list.add(data); // 리스트에 담기									
+								}catch(NumberFormatException e){	}
+								
 								System.out.println("phone : " + value);
 							}
 							

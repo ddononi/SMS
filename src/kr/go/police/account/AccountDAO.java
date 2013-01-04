@@ -404,7 +404,7 @@ public class AccountDAO extends CommonCon {
 		int count = 0;
 		try {
 			conn = dataSource.getConnection();
-			String sql = "SELECT count(*) FROM user_info WHERE ";
+			String sql = "SELECT count(*) FROM user_info WHERE f_approve = 'y' AND ";
 			if(type.equalsIgnoreCase("name")){	// 이름으로 검색
 				sql += "  f_name like ? ";
 			}else if(type.equalsIgnoreCase("id")){		// 아이디로 검색
@@ -702,7 +702,7 @@ public class AccountDAO extends CommonCon {
 		try {
 			conn = dataSource.getConnection();
 			Aria aria = Aria.getInstance();	
-			String sql = "SELECT * FROM user_info WHERE ";
+			String sql = "SELECT * FROM user_info WHERE f_approve = 'y' AND ";
 			if(type.equalsIgnoreCase("name")){	// 이름으로 검색				
 				sql += "  f_name like ? ";
 			}else if(type.equalsIgnoreCase("id")){		// 아이디로 검색

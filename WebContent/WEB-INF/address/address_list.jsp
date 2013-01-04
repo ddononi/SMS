@@ -13,10 +13,11 @@
 <style>
 <!--
 form *{ line-height: 20px; margin: 3px;}
+.dlg{ display: none;}
 -->
 </style>
 <body>
-	<div id="dialog-modify-form" title="주소록 변경">
+	<div id="dialog-modify-form" title="주소록 변경" class='dlg'>
 		<form method="post" id="modifyFrm" action="./AddressModifyAction.ad" style="margin-top: 20px">
 		    <fieldset>
 		    	<input type="hidden" name="token"  id="token"  value="${token}" />	
@@ -29,7 +30,7 @@ form *{ line-height: 20px; margin: 3px;}
 		    </fieldset>
 	    </form>
 	</div>
-	<div id="dialog-add-form" title="주소록 추가">
+	<div id="dialog-add-form" title="주소록 추가" class='dlg'>
 		<form method="post" id="addFrm" action="./AddressAddAction.ad" style="margin-top: 20px">
 		    <fieldset>
 		    	<input type="hidden" name="token"  id="token"  value="${token}" />	
@@ -42,11 +43,10 @@ form *{ line-height: 20px; margin: 3px;}
 	    </form>
 	</div>	
 	<!-- 엑셀파일 불러오기 다이얼로그 -->
-	<div id="excel_upload_dlg" title="액셀파일 등록">
+	<div id="excel_upload_dlg" title="액셀파일 등록" class='dlg'>
 		<form id="excel_frm" method="post" action="ExcelReadAction.ad" enctype="multipart/form-data">
 				<input size="30"  id="excel_file" type="file" name="filename" />
 				<input type="hidden" value="${groupIndex}"  name="groupIndex"  />
-				<input type="hidden" name="token"  id="token"  value="${token}" />	
 		</form>	
 	</div>
 	<div id="wrapper">

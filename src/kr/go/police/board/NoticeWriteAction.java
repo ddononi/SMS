@@ -55,7 +55,7 @@ public class NoticeWriteAction implements Action {
 			int userIndex = Integer.valueOf(session.getAttribute("index").toString());
 			data.setRegUserIndex(userIndex);											// 유저 인덱스
 			data.setTitle(SMSUtil.removeHTML(title));
-			data.setContent(SMSUtil.removeHTML(content));
+			data.setContent(content);
 			data.setPwd(pwd);
 			data.setNotice(true);		// 공지사항	
 		}catch(Exception e){			//	파일크기가 10메가 이상

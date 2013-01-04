@@ -50,7 +50,6 @@ public class AddressFrontcontrollerFilter implements Filter {
 		request.setCharacterEncoding("EUC-KR");
 		// 토큰 처리
 		if(command.equals("/AddressDelAction.ad") ||
-			command.equals("/ExcelReadAction.ad") ||
 			command.equals("/AddressAddAction.ad") || 			
 			command.equals("/AddressModifyAction.ad") ){
 			// 토큰 검사

@@ -5,6 +5,11 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>    
 <%-- 헤더  --%>
 <jsp:include page="../modules/header.jsp" />
+<style type="text/css">
+#wrapper #contents .boderWrap table tbody ul li{list-style-type:disc;}
+#wrapper #contents .boderWrap table tbody ol li{list-style-type:decimal;}
+#wrapper #contents .boderWrap table #con{line-height:1}
+</style>
 <body>
 	<div id="wrapper">
 		<%-- 상단메뉴  --%>
@@ -38,7 +43,7 @@
 	                              <td colspan="2" style="text-align: right; padding-right: 10px;">${data.regDate} <strong>조회</strong> : ${data.viewCount}</td>	                    	  
 	                          </tr>
 	                          <tr>
-	                               <td colspan="4" class="view" height="300">
+	                               <td colspan="4" class="view" height="300" id="con">
 	                               		<pre  style="width:600px;display: block;word-wrap: break-word; " >${data.content}</pre>
 	                               </td>
 	                          </tr>

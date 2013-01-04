@@ -629,7 +629,7 @@ $(document).ready(function(){
 	$("#address_book_btn").click(function(){		// 주소록 버튼
 		var url = "./AddressBookWindow.ad";
 		var title = "addressWindow";
-		var status = "toolbar=no, scrollbars=no, status=no, menubar=no, width=900, height=750, top=100, left=200";
+		var status = "toolbar=no, scrollbars=no, status=no, menubar=no, width=700, height=600, top=100, left=200";
 		if( addressWindow != null ) { 	// 새창이 부모창 위에 보여주기 위함
 			addressWindow.close();
 		}
