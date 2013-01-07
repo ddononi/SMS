@@ -95,6 +95,7 @@ public class SmsSendAction implements Action, IGwConstant{
 				// 예약일이 있는 경우 초(sec)를 붙여준다.
 				reservedDate += ":00";
 			}
+			
 			int userIndex = Integer.valueOf(session.getAttribute("index").toString());// 유저 인덱스
 			String id = session.getAttribute("id").toString();// 유저 아이디
 			String tmpNums = (String)multi.getParameter("call_to_nums");// 발송할 전화번호들
@@ -104,6 +105,7 @@ public class SmsSendAction implements Action, IGwConstant{
 			for(String tel : toTels ){
 				hs.add(tel.replace("-", ""));
 			}
+			
 			// 고유 시퀸스값을 얻기 위한 년월일시분초
 			SimpleDateFormat sdf= new SimpleDateFormat("yyyyMMddHHmmss");
 			String yMdHms = sdf.format(new Date());
@@ -129,7 +131,7 @@ public class SmsSendAction implements Action, IGwConstant{
 				data.setId(id);
 				data.setCallback(callback);
 				data.setReserved(reserved);
-				data.setReserveDate(reservedDate);
+				data.setSendDate(reservedDate);
 				data.setUserIndex(userIndex);
 				// 로그파일에 기록
 				logMsg = "문자 발송\t-SEQ- : " + data.getIndex() +  "\t-USER_ID- : " + data.getId() + 

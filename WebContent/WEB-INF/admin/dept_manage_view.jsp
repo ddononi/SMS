@@ -72,33 +72,49 @@ $(function(){
     	checkbox: true,
         selectMode: 2,
         onSelect: function(select, node) {
-          // Display list of selected nodes
+        	node.expand(false);
+       /*
           var selNodes = node.tree.getSelectedNodes();
-          // convert to title/key array
           var selKeys = $.map(selNodes, function(node){
                return "[" + node.data.key + "]: '" + node.data.title + "'";
           });
+          */
          // $("#echoSelection2").text(selKeys.join(", "));
         },
+        
         onClick: function(node, event) {
+        	node.expand(false);
           // We should not toggle, if target was "checkbox", because this
           // would result in double-toggle (i.e. no toggle)
+          /*
           if( node.getEventTargetType(event) == "title" )
             node.toggleSelect();
+          */
         },
+        
         onKeydown: function(node, event) {
+        	/*
           if( event.which == 32 ) {
             node.toggleSelect();
             return false;
           }
+        	*/
         },
+        
+        onFocus: function(node) {
+           //alert(node.data.title);
+        },
+        onBlur: function(node) {
+           // alert(node.data.title);
+        },
+        
         // The following options are only required, if we have more than one tree on one page:
         cookieId: "dynatree-Cb2",
         idPrefix: "dynatree-Cb2-",
         
+        
         // 아이템 선택시 해당 부서의 유저를 가져온다.
         onActivate: function(node) {
-           
            $.get("./DeptUserTableAction.ac", { deptcode : node.data.key },
            	 function(result){
         	   $("#dept_table").empty().append($.trim(result));

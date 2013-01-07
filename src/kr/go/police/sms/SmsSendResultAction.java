@@ -37,6 +37,12 @@ public class SmsSendResultAction implements Action {
 			limit = Integer.valueOf(request.getParameter("limit"));
 		}
 		
+		// 전송결과에서는 전화번호만 검색처리
+		String flag = "SMS";
+		if(request.getParameter("search") != null){
+			flag = (String)request.getParameter("flag");		
+		}			
+		
 		// 검색어 
 		// 전송결과에서는 전화번호만 검색처리
 		String search = "";
@@ -45,18 +51,23 @@ public class SmsSendResultAction implements Action {
 			search = search.replace("-", "");
 		}	
 		
+		String type="to";
+		if(request.getParameter("type") != null){
+			type = (String)request.getParameter("type");		
+		}		
+		
 		// 내 인덱스
 		HttpSession session = request.getSession();
 		int userIndex = Integer.valueOf(session.getAttribute("index").toString());
 		
-		int start = (page -1 ) * limit +1;											// 시작 번호
-		int listSize = dao.getSendResultCount(userIndex, search);		// 내 발송 내역 갯수
+		int start = (page -1 ) * limit +1;														// 시작 번호
+		int listSize = dao.getSendResultCount(userIndex, type, search);		// 내 발송 내역 갯수
 		//	리스트 번호
 		int no = listSize - (page - 1) * limit;		
 		// 페이지 네이션 처리
 		String params = "limit=" +limit + "&search=" + search;
 		String pagiNation = SMSUtil.makePagiNation(listSize, page, limit, "SmsSendResultAction.sm", params);  
-		ArrayList<SMSBean> list = (ArrayList<SMSBean>)dao.getSendResultList(userIndex, start, limit, search);
+		ArrayList<LGSMSBean> list = (ArrayList<LGSMSBean>)dao.getSendResultList(userIndex, start, limit, type, search);
 		// token 설정
 		String token = CommandToken.set(request);
 		request.setAttribute("token", token);	
@@ -66,6 +77,8 @@ public class SmsSendResultAction implements Action {
 		request.setAttribute("search", search);							//   검색		
 		request.setAttribute("listSize", listSize);						// 총  주소록그룹 갯수
 		request.setAttribute("sendList", list);							// 발송 내역리스트
+		request.setAttribute("type", type);								// 검색타입		
+		request.setAttribute("flag", flag);									// 발송종류				
 		request.setAttribute("pagiNation", pagiNation);				// 페이지네이션
 		forward.setPath("./WEB-INF/sms/send_result_list.jsp");
 

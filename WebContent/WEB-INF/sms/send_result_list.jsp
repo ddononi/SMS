@@ -15,6 +15,7 @@
 #sendResultList td{
 	cursor: pointer;
 }
+select{width: 100px;}
 </style>
 <body>
 	<div id="wrapper">
@@ -31,13 +32,20 @@
 				<%--	검색 처리 --%>
 				<form style="clear: both; width: 100%; padding:3px; vertical-align: middle;" id="search_frm" action="./SmsSendResultAction.sm" method="get"  >
 					<input value="" name="page" type="hidden" />
-					<select id="limit" name="limit" style="float: left; display: inline-block;  margin-top:7px; width: 80px; vertical-align: middle;" >
-						<option ${limit == "10"?"selected":""} value="10">10개</option>
-						<option ${limit == "20"?"selected":""} value="20">20개</option>
-						<option ${limit == "30"?"selected":""} value="30">30개</option>
-						<option ${limit == "40"?"selected":""} value="40">40개</option>
-						<option ${limit == "50"?"selected":""} value="50">50개</option>
-					</select>	
+					<div style="float: left; display: inline-block;  margin-top:7px; width: 300px; vertical-align: middle;" >
+						<select id="flag" name="flag">
+							<option value="SMS" ${flag == "SMS"?"selected":""} >SMS</option>
+							<option value="LMS" ${flag == "LMS"?"selected":""} >LMS</option>
+							<option value="MMS" ${flag == "MMS"?"selected":""} >MMS</option>
+						</select>						
+						<select id="limit" name="limit" >
+							<option ${limit == "10"?"selected":""} value="10">10개</option>
+							<option ${limit == "20"?"selected":""} value="20">20개</option>
+							<option ${limit == "30"?"selected":""} value="30">30개</option>
+							<option ${limit == "40"?"selected":""} value="40">40개</option>
+							<option ${limit == "50"?"selected":""} value="50">50개</option>
+						</select>	
+					</div>
 					<div style="float: right; display: inline-block;">
 					<select id=type name="type">
 						<!-- <option value="from"  ${type == "from"?"selected":""} >보낸이</option> -->
@@ -66,7 +74,7 @@
 							<th>받는번호</th>							
 							<th>메세지</th>
 							<th>전송결과</th>
-							<th>전송타입</th>
+							<th>요청시간</th>
 							<th>발송시간</th>																							
 						</tr>
 					</thead>
@@ -89,19 +97,19 @@
 					   		   <%=no--%>
 					       </td>
 							<td class="phone">					
-					   		   ${data.toPhone}
+					   		   ${data.phone}
 					       </td>						       
 							<td>					
-					   		   <a 	title="${data.message}"  class="message" href="#" onclick="return false;" >${data.message}</a>
+					   		   <a 	title="${data.msg}"  class="message" href="#" onclick="return false;" >${data.msg}</a>
 					       </td>					
 							<td>					
-					   		 ${data.resultMsg}
+					   		${data.rsltstat}
 					       </td>	
 							<td>					
-					   		 ${data.flag =='s'?"SMS":"MMS"}
+					   		${data.senddate}
 					       </td>						       
 							<td>					
-					   		   ${data.regDate}
+					   		   ${data.realsenddate}
 					       </td>	
 					     </tr> 
 					</c:forEach>
@@ -218,9 +226,8 @@ $(function(){
     	}
     });    
     
-    $("#limit").change(function(){
+    $("#limit, #flag").change(function(){
     	$("#frm").submit();
-    	//window.location.href="SmsSendResultAction.sm?limit=" + $(this).val();
     });
 
     $(".gnb_sub1").show();

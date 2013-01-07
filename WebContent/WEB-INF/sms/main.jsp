@@ -115,7 +115,7 @@
 								<label id="reserved_label">예약 :</label><input type="text" id="reserved_datetime" name="reserved_datetime"  disabled="disabled" class="inp" style="width: 115px; margin-left: 5px;font-size: 12px;"   />								
 						</div>
 						<div class="btn" >
-							<a id="send_btn" href="#send_btn">
+							<a id="send_btn" href="#send_btn" onclick="return false;">
 								<img src="./images/sms/btn_send.gif" alt="보내기" />
 							</a>
 						</div>

@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 
@@ -181,7 +182,7 @@ public class SmsDAO extends CommonCon {
 			    data.setMessage(rs.getString("f_message"));
 			    data.setToPhone(rs.getString("f_to_phone"));
 			    data.setFromPhone(rs.getString("f_from_phone"));			    
-			    data.setReserveDate(rs.getString("f_reserve_date"));	
+			    data.setSendDate(rs.getString("f_reserve_date"));	
 			    data.setUserIndex(rs.getInt("f_user_index"));	
 			    
 				list.add(data);
@@ -206,11 +207,14 @@ public class SmsDAO extends CommonCon {
 	 * @param search
 	 * @return	
 	 */
-	public List<SMSBean> getSendResultList(int userIndex, int start, int end, String search) {
-		List<SMSBean> list = new ArrayList<SMSBean>();
-		SMSBean data = null;		
+	public List<LGSMSBean> getSendResultList(
+			int userIndex, int start, int end, String type, String search) {
+		List<LGSMSBean> list = new ArrayList<LGSMSBean>();
+		LGSMSBean data = null;
+		String sql = "";
 		try {
 			conn = dataSource.getConnection();
+			/*
 			pstmt = conn.prepareStatement("SELECT * FROM sms_send_info WHERE" +
 					" f_callto like ? AND f_user_index = ? AND f_is_del = 'n'  " +
 					" ORDER BY f_index DESC LIMIT ?, ? ");
@@ -236,6 +240,57 @@ public class SmsDAO extends CommonCon {
 			    data.setResultMsg(rs.getString("f_result_msg"));					    
 				list.add(data);
   			}
+  			*/
+			Calendar cal = Calendar.getInstance();
+			String logTable = "";
+			while(true){
+				//  해당 월 테이블이 있는 검사
+				pstmt = conn.prepareStatement("SHOW TABLES LIKE ? ");
+				String month = String.format("%02d", Integer.valueOf(cal.get(Calendar.MONTH) + 1));
+				logTable =  "sc_log_" + cal.get(Calendar.YEAR) + "" + month;
+				
+				pstmt.setString(1, logTable);
+				rs = pstmt.executeQuery();
+				rs.last();
+				//	해당 테이블이 없으면
+				if( rs.getRow() <= 0 ){
+					System.out.println("e : " + logTable);					
+					break;
+				}
+				// 이전달로 이동
+				cal.add(Calendar.MONTH, -1);
+				sql = "SELECT * FROM " + logTable +" WHERE ";
+				if(type.equalsIgnoreCase("to")){			// 받는 번호로 검색
+					sql += " tr_phone like ? ";
+				}else if(type.equalsIgnoreCase("message")){		// 메세지로 검색
+					sql += "  tr_msg like ? ";
+				}
+				
+				sql +=" AND tr_etc2 = ? AND tr_etc3 = 'n'  " +
+					" ORDER BY tr_num DESC LIMIT ?, ? ";			
+				
+				pstmt = conn.prepareStatement(sql);			
+				pstmt.setString(1, "%" + search + "%");	
+				pstmt.setString(2, ""+ userIndex);				
+				pstmt.setInt(3, start -1);
+				pstmt.setInt(4, end);				
+				rs = pstmt.executeQuery();
+				while(rs.next())	{
+					// 문자 내역을 담는다.
+				    data = new LGSMSBean();	
+				    data.setIndex(rs.getLong("tr_num"));
+				    data.setSenddate(rs.getString("tr_senddate"));				    
+				    data.setPhone(rs.getString("tr_phone"));			    
+				    data.setCallback(rs.getString("tr_callback"));
+				    data.setMsg(rs.getString("tr_msg"));
+				    data.setRsltstat(rs.getString("tr_rsltstat"));
+				    data.setRealsenddate(rs.getString("tr_realsenddate"));			    
+				    data.setRsltdate(rs.getString("tr_rsltdate"));   
+				    data.setSendstate(rs.getString("tr_sendstat"));					    
+					list.add(data);
+	  			}
+			
+			}
 			
 			return list;
 		} catch (SQLException e) {
@@ -525,25 +580,22 @@ public class SmsDAO extends CommonCon {
 			conn = dataSource.getConnection();
 			String sql;
 			for(SMSBean data : list){
+				/*
 				sql = "INSERT INTO sms_send_info ( f_index, f_user_id, f_user_index, f_callto, f_callfrom, f_message, " +
 						"f_send_count, f_send_state, f_reserved, f_reserve_date, f_callback," +
 						" f_nameto, f_flag, f_reg_date, f_result_msg, f_file1, f_file2, f_file3 )" +
 						" VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, '',  ?, now(), '전송중' , ?, ?, ?) ";
+				*/
+				sql = "INSERT INTO SC_TRAN ( tr_senddate, tr_etc1, tr_etc2, tr_phone, tr_callback, tr_msg, tr_etc3) " +
+						" VALUES (?, ?, ?, ?, ?, ?, ?) ";
 				pstmt = conn.prepareStatement(sql);
-				pstmt.setLong(1, data.getIndex());				// 고유 시퀸스 번호				
+				pstmt.setString(1, data.getSendDate());		// 발송시간					
 				pstmt.setString(2, data.getId());					// 유저 아이디
-				pstmt.setInt(3, data.getUserIndex());			// 유저 인덱스
+				pstmt.setString(3, ""+data.getUserIndex());	// 유저  인덱스				
 				pstmt.setString(4, data.getToPhone());			// 받는 전화번호
 				pstmt.setString(5, data.getFromPhone());		// 보내는 전화번호				
 				pstmt.setString(6, data.getMessage());			// 메세지
-				pstmt.setInt(7, list.size());							// 해당 문자 전송 갯수	
-				pstmt.setString(8, data.isResreved()?"y":"n");	// 예약여부
-				pstmt.setString(9, data.getReserveDate());	// 예약일				
-				pstmt.setString(10, data.getCallback());			// 발송 수신 전화번호
-				pstmt.setString(11, data.getFlag());				//	전송타입	
-				pstmt.setString(12, data.getFile1());				//	파일1
-				pstmt.setString(13, data.getFile2());				//	파일2
-				pstmt.setString(14, data.getFile3());				//	파일3				
+				pstmt.setString(7, "n");			// 확인여부				
 				resultCount +=  pstmt.executeUpdate();
 			}
 			return resultCount;
@@ -563,21 +615,48 @@ public class SmsDAO extends CommonCon {
 	 * 		검색할 유저 인덱스
 	 * @param search 
 	 * 		검색어
+	 * @param type 
 	 * @return
 	 */
-	public int getSendResultCount(int userIndex, String search) {
+	public int getSendResultCount(int userIndex, String type, String search) {
 		int result = 0;
+		String sql = "";
 		try {
 			conn = dataSource.getConnection();
-			pstmt = conn.prepareStatement("SELECT count(*) FROM sms_send_info WHERE" +
-					" f_user_index = ? AND " +
-					" f_callto like ?  AND f_is_del = 'n'  ORDER BY f_index DESC ");
-			pstmt.setInt(1, userIndex);	
-			pstmt.setString(2, "%" + search + "%");				
-			rs = pstmt.executeQuery();
-			if(rs.next()){
-				result =  rs.getInt(1);
-  			}
+			Calendar cal = Calendar.getInstance();
+			String logTable = "";
+			while(true){
+				//  해당 월 테이블이 있는 검사
+				pstmt = conn.prepareStatement("SHOW TABLES LIKE ? ");
+				String month = String.format("%02d", Integer.valueOf(cal.get(Calendar.MONTH) + 1));
+				logTable =  "sc_log_" + cal.get(Calendar.YEAR) + "" + month;
+				
+				pstmt.setString(1, logTable);
+				rs = pstmt.executeQuery();
+				rs.last();
+				//	해당 테이블이 없으면
+				if( rs.getRow() <= 0 ){
+					System.out.println("e : " + logTable);					
+					break;
+				}
+				// 이전달로 이동
+				cal.add(Calendar.MONTH, -1);
+				sql ="SELECT  count(*) FROM " + logTable +" WHERE ";
+				if(type.equalsIgnoreCase("to")){			// 받는 번호로 검색
+					sql += " tr_phone like ? ";
+				}else if(type.equalsIgnoreCase("message")){		// 메세지로 검색
+					sql += "  tr_msg like ? ";
+				}
+				
+				sql +=" AND tr_etc2 = ? AND tr_etc3 = 'n'  ";			
+				pstmt = conn.prepareStatement(sql);	
+				pstmt.setString(1, "%" + search + "%");
+				pstmt.setString(2, "" + userIndex);				
+				rs = pstmt.executeQuery();
+				if(rs.next()){
+					result +=  rs.getInt(1);
+	  			}
+			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 			System.out.println("getSendResultCount 에러 : " + e.getMessage());
@@ -682,7 +761,7 @@ public class SmsDAO extends CommonCon {
 			    data.setRequestResult(rs.getInt("f_request_result_code"));
 			    data.setResponseResult(rs.getInt("f_response_result_code"));		
 			    data.setFlag(rs.getString("f_flag").equalsIgnoreCase("s")?"SMS":"MMS");
-			    data.setReserveDate(rs.getString("f_reserve_date"));			    
+			    data.setSendDate(rs.getString("f_reserve_date"));			    
 			    data.setRegDate(rs.getString("f_reg_date"));   
 			    data.setCallback(rs.getString("f_callback"));
 			    
@@ -912,7 +991,7 @@ public class SmsDAO extends CommonCon {
 			    data.setResponseResult(rs.getInt("f_response_result_code"));			
 			    data.setFlag(rs.getString("f_flag").equalsIgnoreCase("s")?"SMS":"MMS");			    
 			    data.setRegDate(rs.getString("f_reg_date"));   
-			    data.setReserveDate(rs.getString("f_reserve_date"));		    
+			    data.setSendDate(rs.getString("f_reserve_date"));		    
 			    data.setCallback(rs.getString("f_callback"));
 			    
 				list.add(data);

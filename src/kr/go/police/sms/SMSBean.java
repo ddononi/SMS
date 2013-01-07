@@ -15,7 +15,7 @@ public class SMSBean {
 	private int requestResult; // 요청전송결과코드값
 	private int responseResult; // 응답전송결과코드값
 	private boolean resreved;		// 예약여부
-	private String reserveDate; // 예약시간
+	private String sendDate; // 예약시간
 	private String callback; // 콜백
 	private String deptName; // 부서명
 	private String flag; // sms or mms
@@ -115,12 +115,12 @@ public class SMSBean {
 		this.resreved = resreved;
 	}
 
-	public String getReserveDate() {
-		return reserveDate;
+	public String getSendDate() {
+		return sendDate;
 	}
 
-	public void setReserveDate(String reserveDate) {
-		this.reserveDate = reserveDate;
+	public void setSendDate(String sendDate) {
+		this.sendDate = sendDate;
 	}
 
 	public String getCallback() {
