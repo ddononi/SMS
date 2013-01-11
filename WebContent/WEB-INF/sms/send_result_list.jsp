@@ -12,6 +12,9 @@
 .message{
 	display: inline-block; width: 200px; text-overflow:ellipsis; white-space: nowrap; overflow: hidden;
 }
+.resultMsg{
+	display: inline-block; width: 100px; text-overflow:ellipsis; white-space: nowrap; overflow: hidden;
+}
 #sendResultList td{
 	cursor: pointer;
 }
@@ -33,10 +36,10 @@ select{width: 100px;}
 				<form style="clear: both; width: 100%; padding:3px; vertical-align: middle;" id="search_frm" action="./SmsSendResultAction.sm" method="get"  >
 					<input value="" name="page" type="hidden" />
 					<div style="float: left; display: inline-block;  margin-top:7px; width: 300px; vertical-align: middle;" >
-						<select id="flag" name="flag">
-							<option value="SMS" ${flag == "SMS"?"selected":""} >SMS</option>
-							<option value="LMS" ${flag == "LMS"?"selected":""} >LMS</option>
-							<option value="MMS" ${flag == "MMS"?"selected":""} >MMS</option>
+						<select id="mode" name="mode">
+							<option value="SMS" ${mode == "SMS"?"selected":""} >SMS</option>
+							<option value="LMS" ${mode == "LMS"?"selected":""} >LMS</option>
+							<option value="MMS" ${mode == "MMS"?"selected":""} >MMS</option>
 						</select>						
 						<select id="limit" name="limit" >
 							<option ${limit == "10"?"selected":""} value="10">10개</option>
@@ -103,7 +106,7 @@ select{width: 100px;}
 					   		   <a 	title="${data.msg}"  class="message" href="#" onclick="return false;" >${data.msg}</a>
 					       </td>					
 							<td>					
-					   		${data.rsltstat}
+					   		<a href="#" onclick="return false" class="resultMsg" title="${data.resultCodeMessage}" >${data.resultCodeMessage}</a>
 					       </td>	
 							<td>					
 					   		${data.senddate}
@@ -119,6 +122,8 @@ select{width: 100px;}
 				<form id="del_frm" action="./ListDeleteAction.sm" method="post" style="float: right;  margin-top: 5px;">
 					<input type="hidden" name="token"  id="token"  value="${token}" />
 					<input value="" id="indexs" name="indexs" type="hidden" />
+					<input value="${mode}"  name="mode" type="hidden" />
+					<input value="user"  name="from" type="hidden" />
 					<input value="./SmsSendResultAction.sm" name="page" type="hidden" />
 					<input value="${page}" name="page" type="hidden" />				
 					<a href="#" onclick="return false;" id="del_btn">삭제</a>
@@ -170,6 +175,9 @@ $(function(){
     	$("#msg").val(msg);
     	$('#message_dlg').modal();
     });
+    
+    $(".resultMsg").tooltip();
+    
 	//	입력창 에서 엔터 버튼 입력시 폼전송
     $("#search").tooltip().keydown(function(event){
 	       if(event.keyCode == 13){
@@ -178,10 +186,6 @@ $(function(){
     });	     
 	// 검색 버튼    
     $("#search_btn").click(function(){
-    	$("#search_frm").submit();
-    });  
-	
-    $("#limit").change(function(){
     	$("#search_frm").submit();
     });  
 	
@@ -226,8 +230,8 @@ $(function(){
     	}
     });    
     
-    $("#limit, #flag").change(function(){
-    	$("#frm").submit();
+    $("#limit, #mode").change(function(){
+    	$("#search_frm").submit();
     });
 
     $(".gnb_sub1").show();

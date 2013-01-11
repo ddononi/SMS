@@ -51,20 +51,44 @@ public class UserReserveListAction implements Action {
 			type = (String)request.getParameter("type");		
 		}
 		
-		// 내 인덱스
+		// 전송 모드 ( sms, lms, mms )
+		String mode = "SMS";
+		if(request.getParameter("mode") != null){
+			mode = (String)request.getParameter("mode");		
+		}			
 		
-		
+		// 해당 유저 인덱스
 		int userIndex = Integer.parseInt(request.getParameter("index"));
 		String userid = request.getParameter("userid");
 				
 		int start = (page -1 ) * limit +1;		// 시작 번호
-		int listSize = dao.getUserReserveCount(userIndex, search, type);		// 내 발송 내역 갯수
+		
+		// 모드별 사용자 발송 갯수 얻기
+		int listSize = 0;
+		if(mode.equals("SMS")){	
+			 listSize = dao.getUserReserveSmsSendListCount(userIndex, search, type);	
+		}else if(mode.equals("LMS")){	
+			listSize = dao.getUserReserveLmsSendListCount(userIndex, search, type);
+		}else{	//mms
+			listSize = dao.getUserReserveMmsSendListCount(userIndex, search, type);
+		}
+		
 		//	리스트 번호
 		int no = listSize - (page - 1) * limit;		
 		// 페이지 네이션 처리
-		String params = "limit=" +limit + "&search=" + search +"&index="+ userIndex +"&userid="+userid+"&type="+type;
-		String pagiNation = SMSUtil.makePagiNation(listSize, page, limit, "UserReserveListAction.sm", params);  
-		ArrayList<SMSBean> list = (ArrayList<SMSBean>)dao.getUserReserveList(userIndex, start, limit, search, type);
+		String params = "limit=" +limit + "&search=" + search +"&index="+ userIndex 
+				+"&userid=" + userid + "&type="+type +"&mode="+mode;
+		String pagiNation = SMSUtil.makePagiNation(listSize, page, limit, "UserReserveListAction.sm", params);
+		
+		// 모드별 사용자 발송 리스트 얻기
+		ArrayList<?> list = null;
+		if(mode.equals("SMS")){	
+			list = (ArrayList<LGSMSBean>)dao.getUserReserveSmsSendList(userIndex, start, limit, search, type);
+		}else if(mode.equals("LMS")){	
+			list = (ArrayList<LGMMSBean>)dao.getUserReserveLmsSendList(userIndex, start, limit, search, type);
+		}else{
+			list = (ArrayList<LGMMSBean>)dao.getUserReserveMmsSendList(userIndex, start, limit, search, type);
+		}	
 		
 		// token 설정
 		String token = CommandToken.set(request);
@@ -79,6 +103,7 @@ public class UserReserveListAction implements Action {
 		request.setAttribute("userid", userid);							//유저 정보
 		request.setAttribute("userIndex", userIndex);					//유저 정보
 		request.setAttribute("type", type);								//검색 타입
+		request.setAttribute("mode", mode);							//발송모드		
 		forward.setPath("./WEB-INF/admin/user_reserve_list.jsp");
 
 		return forward;

@@ -2,6 +2,7 @@ package kr.go.police.sms;
 
 /**
  * 문자 전송 dto(LG U+ 용)
+ * 추후 mms, lms, sms 공통 변수는 인터페이스 처리 
  */
 public class LGSMSBean  {
 	private long index; // 메세지 고유 번호
@@ -28,6 +29,9 @@ public class LGSMSBean  {
 	}
 
 	public String getSenddate() {
+		if(senddate != null && senddate.length() >= 16){
+			return senddate.substring(5, 16);
+		}				
 		return senddate;
 	}
 
@@ -44,9 +48,6 @@ public class LGSMSBean  {
 	}
 
 	public String getSendstate() {
-		if(sendstate != null){
-			return sendstate.substring(5, 16);
-		}		
 		return sendstate;
 	}
 
@@ -79,7 +80,7 @@ public class LGSMSBean  {
 	}
 
 	public String getRsltdate() {
-		if(rsltdate != null){
+		if(rsltdate != null && rsltdate.length() >= 16){
 			return rsltdate.substring(5, 16);
 		}
 		
@@ -123,7 +124,7 @@ public class LGSMSBean  {
 	}
 
 	public String getRealsenddate() {
-		if(realsenddate != null){
+		if(realsenddate != null && realsenddate.length() >= 16){
 			return realsenddate.substring(5, 16);
 		}		
 		return realsenddate;
@@ -140,5 +141,16 @@ public class LGSMSBean  {
 	public void setRsltstat(String rsltstat) {
 		this.rsltstat = rsltstat;
 	}
-
+	
+	/**
+	 * 결과코드값 메시지 출력
+	 * @return
+	 */
+	public String getResultCodeMessage(){
+		try{
+			return AgentResultMsg.getSmsMsg(Integer.valueOf(rsltstat));
+		}catch(Exception e){}
+		
+		return "";
+	}
 }

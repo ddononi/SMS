@@ -61,7 +61,9 @@ public class SmsFrontcontrollerFilter implements Filter {
 		}	
 		
 		// 토큰 처리
-		if(command.equals("/ListDeleteAction.sm")){
+		if(command.equals("/ListDeleteAction.sm") ||
+			command.equals("/ReserveListDeleteAction.sm")){
+			
 			// 토큰 검사
 			if (!CommandToken.isValid(request)) {
 				response.setContentType("text/html;charset=euc-kr");

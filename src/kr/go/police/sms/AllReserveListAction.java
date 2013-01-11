@@ -52,18 +52,42 @@ public class AllReserveListAction implements Action {
 			type = (String)request.getParameter("type");		
 		}
 		
+		// 전송 모드 ( sms, lms, mms )
+		String mode = "SMS";
+		if(request.getParameter("mode") != null){
+			mode = (String)request.getParameter("mode");		
+		}	
+		
 		// 경찰서 코드가져오기
 		HttpSession session = request.getSession();
 		int psCode =  (Integer)session.getAttribute("psCode");				
 		
 		int start = (page -1 ) * limit +1;												// 시작 번호
-		int listSize = dao.getReserveAllListCount(search, type, psCode);		// 예약 갯수
+		
+		// 모드별 전체 발송 갯수 얻기
+		int listSize = 0;
+		if(mode.equals("SMS")){	
+			 listSize = dao.getReserveSmsSendAllListCount(search,type, psCode);		
+		}else if(mode.equals("LMS")){	
+			listSize = dao.getReserveLmsSendAllListCount(search,type, psCode);
+		}else{	//mms
+			listSize = dao.getReserveMmsSendAllListCount(search,type, psCode);
+		}
+		
 		//	리스트 번호
 		int no = listSize - (page - 1) * limit;		
 		// 페이지네이션 처리
-		String params = "limit=" +limit + "&search=" + search+"&type="+type;
+		String params = "limit=" +limit + "&search=" + search +"&type="+type +"&mode="+mode;
 		String pagiNation = SMSUtil.makePagiNation(listSize, page, limit, "AllReserveListAction.sm", params);  
-		ArrayList<SMSBean> list = (ArrayList<SMSBean>)dao.getReserveAllList(start, limit, search, type, psCode);
+		// 모드별 전체 발송 리스트 얻기
+		ArrayList<?> list = null;
+		if(mode.equals("SMS")){	
+			list = (ArrayList<LGSMSBean>)dao.getReserveSmsSendAllList(start, limit, search, type, psCode);
+		}else if(mode.equals("LMS")){	
+			list = (ArrayList<LGMMSBean>)dao.getReserveLmsSendAllList(start, limit, search, type, psCode);
+		}else{
+			list = (ArrayList<LGMMSBean>)dao.getReserveMmsSendAllList(start, limit, search, type, psCode);
+		}			
 		
 		// token 설정
 		String token = CommandToken.set(request);
@@ -76,6 +100,7 @@ public class AllReserveListAction implements Action {
 		request.setAttribute("sendList", list);							// 발송 내역리스트
 		request.setAttribute("pagiNation", pagiNation);				// 페이지네이션
 		request.setAttribute("type", type);							// 검색타입
+		request.setAttribute("mode", mode);							// 검색타입				
 		forward.setPath("./WEB-INF/admin/all_reserve_list.jsp");
 
 		return forward;

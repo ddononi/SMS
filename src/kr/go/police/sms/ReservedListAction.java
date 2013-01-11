@@ -51,18 +51,40 @@ public class ReservedListAction implements Action {
 			type = (String)request.getParameter("type");		
 		}
 		
+		// 전송 모드 ( sms, lms, mms )
+		String mode = "SMS";
+		if(request.getParameter("mode") != null){
+			mode = (String)request.getParameter("mode");		
+		}				
+		
 		// 내 인덱스
 		HttpSession session = request.getSession();
 		int userIndex = Integer.valueOf(session.getAttribute("index").toString());		
 				
 		int start = (page -1 ) * limit +1;		// 시작 번호
-		int listSize = dao.getUserReserveCount(userIndex, search, type);		// 내 발송 내역 갯수
+		// 모드별 사용자 발송 갯수 얻기
+		int listSize = 0;
+		if(mode.equals("SMS")){	
+			 listSize = dao.getUserReserveSmsSendListCount(userIndex, search, type);	
+		}else if(mode.equals("LMS")){	
+			listSize = dao.getUserReserveLmsSendListCount(userIndex, search, type);
+		}else{	//mms
+			listSize = dao.getUserReserveMmsSendListCount(userIndex, search, type);
+		}
 		//	리스트 번호
 		int no = listSize - (page - 1) * limit;		
 		// 페이지 네이션 처리
-		String params = "limit=" +limit + "&search=" + search +"&type="+type;
+		String params = "limit=" +limit + "&search=" + search +"&type="+type +"&mode="+mode;
 		String pagiNation = SMSUtil.makePagiNation(listSize, page, limit, "ReservedListAction.sm", params);  
-		ArrayList<SMSBean> list = (ArrayList<SMSBean>)dao.getUserReserveList(userIndex, start, limit, search, type);
+		// 모드별 사용자 발송 리스트 얻기
+		ArrayList<?> list = null;
+		if(mode.equals("SMS")){	
+			list = (ArrayList<LGSMSBean>)dao.getUserReserveSmsSendList(userIndex, start, limit, search, type);
+		}else if(mode.equals("LMS")){	
+			list = (ArrayList<LGMMSBean>)dao.getUserReserveLmsSendList(userIndex, start, limit, search, type);
+		}else{
+			list = (ArrayList<LGMMSBean>)dao.getUserReserveMmsSendList(userIndex, start, limit, search, type);
+		}	
 		
 		// token 설정
 		String token = CommandToken.set(request);
@@ -76,6 +98,7 @@ public class ReservedListAction implements Action {
 		request.setAttribute("pagiNation", pagiNation);				// 페이지네이션
 		request.setAttribute("userIndex", userIndex);					//유저 정보
 		request.setAttribute("type", type);								//검색 타입
+		request.setAttribute("mode", mode);							// 발송모드			
 		forward.setPath("./WEB-INF/sms/reserved_list.jsp");
 
 		return forward;

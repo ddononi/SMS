@@ -241,9 +241,10 @@ public class SmsDAO extends CommonCon {
 				list.add(data);
   			}
   			*/
-			Calendar cal = Calendar.getInstance();
-			String logTable = "";
-			while(true){
+		//	Calendar cal = Calendar.getInstance();
+		//	String logTable = "";
+			//while(true){
+			/*
 				//  해당 월 테이블이 있는 검사
 				pstmt = conn.prepareStatement("SHOW TABLES LIKE ? ");
 				String month = String.format("%02d", Integer.valueOf(cal.get(Calendar.MONTH) + 1));
@@ -259,39 +260,38 @@ public class SmsDAO extends CommonCon {
 				}
 				// 이전달로 이동
 				cal.add(Calendar.MONTH, -1);
-				sql = "SELECT * FROM " + logTable +" WHERE ";
-				if(type.equalsIgnoreCase("to")){			// 받는 번호로 검색
-					sql += " tr_phone like ? ";
-				}else if(type.equalsIgnoreCase("message")){		// 메세지로 검색
-					sql += "  tr_msg like ? ";
-				}
-				
-				sql +=" AND tr_etc2 = ? AND tr_etc3 = 'n'  " +
-					" ORDER BY tr_num DESC LIMIT ?, ? ";			
-				
-				pstmt = conn.prepareStatement(sql);			
-				pstmt.setString(1, "%" + search + "%");	
-				pstmt.setString(2, ""+ userIndex);				
-				pstmt.setInt(3, start -1);
-				pstmt.setInt(4, end);				
-				rs = pstmt.executeQuery();
-				while(rs.next())	{
-					// 문자 내역을 담는다.
-				    data = new LGSMSBean();	
-				    data.setIndex(rs.getLong("tr_num"));
-				    data.setSenddate(rs.getString("tr_senddate"));				    
-				    data.setPhone(rs.getString("tr_phone"));			    
-				    data.setCallback(rs.getString("tr_callback"));
-				    data.setMsg(rs.getString("tr_msg"));
-				    data.setRsltstat(rs.getString("tr_rsltstat"));
-				    data.setRealsenddate(rs.getString("tr_realsenddate"));			    
-				    data.setRsltdate(rs.getString("tr_rsltdate"));   
-				    data.setSendstate(rs.getString("tr_sendstat"));					    
-					list.add(data);
-	  			}
-			
+			*/
+			sql = "SELECT * FROM sc_log WHERE ";
+			if(type.equalsIgnoreCase("to")){			// 받는 번호로 검색
+				sql += " tr_phone like ? ";
+			}else if(type.equalsIgnoreCase("message")){		// 메세지로 검색
+				sql += "  tr_msg like ? ";
 			}
 			
+			sql +=" AND tr_etc2 = ? AND tr_etc3 = 'n'  " +
+				" ORDER BY tr_num DESC LIMIT ?, ? ";			
+			
+			pstmt = conn.prepareStatement(sql);			
+			pstmt.setString(1, "%" + search + "%");	
+			pstmt.setString(2, ""+ userIndex);				
+			pstmt.setInt(3, start -1);
+			pstmt.setInt(4, end);				
+			rs = pstmt.executeQuery();
+			while(rs.next())	{
+				// 문자 내역을 담는다.
+			    data = new LGSMSBean();	
+			    data.setIndex(rs.getLong("tr_num"));
+			    data.setSenddate(rs.getString("tr_senddate"));				    
+			    data.setPhone(rs.getString("tr_phone"));			    
+			    data.setCallback(rs.getString("tr_callback"));
+			    data.setMsg(rs.getString("tr_msg"));
+			    data.setRsltstat(rs.getString("tr_rsltstat"));
+			    data.setRealsenddate(rs.getString("tr_realsenddate"));			    
+			    data.setRsltdate(rs.getString("tr_rsltdate"));   
+			    data.setSendstate(rs.getString("tr_sendstat"));					    
+				list.add(data);
+  			}
+		//	}
 			return list;
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -574,7 +574,7 @@ public class SmsDAO extends CommonCon {
 	 * @return
 	 * 	발송 대기 추가 갯수
 	 */
-	public int addSmsSendList(ArrayList<SMSBean> list) {
+	public int addSendList(ArrayList<SMSBean> list) {
 		int resultCount = 0;
 		try {
 			conn = dataSource.getConnection();
@@ -586,17 +586,49 @@ public class SmsDAO extends CommonCon {
 						" f_nameto, f_flag, f_reg_date, f_result_msg, f_file1, f_file2, f_file3 )" +
 						" VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, '',  ?, now(), '전송중' , ?, ?, ?) ";
 				*/
-				sql = "INSERT INTO SC_TRAN ( tr_senddate, tr_etc1, tr_etc2, tr_phone, tr_callback, tr_msg, tr_etc3) " +
-						" VALUES (?, ?, ?, ?, ?, ?, ?) ";
-				pstmt = conn.prepareStatement(sql);
-				pstmt.setString(1, data.getSendDate());		// 발송시간					
-				pstmt.setString(2, data.getId());					// 유저 아이디
-				pstmt.setString(3, ""+data.getUserIndex());	// 유저  인덱스				
-				pstmt.setString(4, data.getToPhone());			// 받는 전화번호
-				pstmt.setString(5, data.getFromPhone());		// 보내는 전화번호				
-				pstmt.setString(6, data.getMessage());			// 메세지
-				pstmt.setString(7, "n");			// 확인여부				
-				resultCount +=  pstmt.executeUpdate();
+				//	80바이트 이상 혹은 첨부파일이 있을 경우 LMS, MMS  전송  아니면 SMS 전송
+				if(data.getMessage().getBytes().length > 80 ||
+						(data.getFile1() != null && !data.getFile1().isEmpty()) ||
+						(data.getFile2() != null && !data.getFile2().isEmpty()) ||
+						(data.getFile3() != null && !data.getFile3().isEmpty()) ){		// LMS or MMS	
+					sql = "INSERT INTO mms_msg " +
+							"( subject, reqdate, etc1, etc2, phone, callback, msg, " +
+							"etc3, file_path1, file_path2, file_path3, file_cnt) " +
+							" VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ";
+					pstmt = conn.prepareStatement(sql);
+					pstmt.setString(1, "");								//	제목							
+					pstmt.setString(2, data.getSendDate());		// 발송시간					
+					pstmt.setString(3, data.getId());					// 유저 아이디
+					pstmt.setString(4, ""+data.getUserIndex());	// 유저  인덱스				
+					pstmt.setString(5, data.getToPhone());			// 받는 전화번호
+					pstmt.setString(6, data.getFromPhone());		// 보내는 전화번호				
+					pstmt.setString(7, data.getMessage());			// 메세지
+					pstmt.setString(8, "n");								// 확인여부				
+					pstmt.setString(9, data.getFile1());				// 파일1
+					pstmt.setString(10, data.getFile2());				// 파일2	
+					pstmt.setString(11, data.getFile3());				// 파일3
+					// 전송 파일 갯수 체크
+					int fileCount = 0;
+					if(data.getFile1() != null && !data.getFile1().isEmpty()) fileCount += 1;
+					if(data.getFile2() != null && !data.getFile2().isEmpty()) fileCount += 1;
+					if(data.getFile3() != null && !data.getFile3().isEmpty()) fileCount += 1;
+					pstmt.setInt(12, fileCount);				// 전송 파일 갯수					
+					System.out.println("insert ~~~~~~~~~~~~~~~");
+					resultCount +=  pstmt.executeUpdate();
+				}else{			// SMS
+					sql = "INSERT INTO sc_tran ( tr_senddate, tr_etc1, tr_etc2, " +
+							"tr_phone, tr_callback, tr_msg, tr_etc3) " +
+							" VALUES (?, ?, ?, ?, ?, ?, ?) ";
+					pstmt = conn.prepareStatement(sql);
+					pstmt.setString(1, data.getSendDate());		// 발송시간					
+					pstmt.setString(2, data.getId());					// 유저 아이디
+					pstmt.setString(3, ""+data.getUserIndex());	// 유저  인덱스				
+					pstmt.setString(4, data.getToPhone());			// 받는 전화번호
+					pstmt.setString(5, data.getFromPhone());		// 보내는 전화번호				
+					pstmt.setString(6, data.getMessage());			// 메세지
+					pstmt.setString(7, "n");			// 확인여부				
+					resultCount +=  pstmt.executeUpdate();
+				}
 			}
 			return resultCount;
 		} catch (SQLException e) {
@@ -618,14 +650,15 @@ public class SmsDAO extends CommonCon {
 	 * @param type 
 	 * @return
 	 */
-	public int getSendResultCount(int userIndex, String type, String search) {
+	public int getSMSSendResultCount(int userIndex, String type, String search) {
 		int result = 0;
 		String sql = "";
 		try {
 			conn = dataSource.getConnection();
-			Calendar cal = Calendar.getInstance();
-			String logTable = "";
-			while(true){
+			//Calendar cal = Calendar.getInstance();
+			//String logTable = "";
+		//	while(true){
+			/*
 				//  해당 월 테이블이 있는 검사
 				pstmt = conn.prepareStatement("SHOW TABLES LIKE ? ");
 				String month = String.format("%02d", Integer.valueOf(cal.get(Calendar.MONTH) + 1));
@@ -641,22 +674,23 @@ public class SmsDAO extends CommonCon {
 				}
 				// 이전달로 이동
 				cal.add(Calendar.MONTH, -1);
-				sql ="SELECT  count(*) FROM " + logTable +" WHERE ";
-				if(type.equalsIgnoreCase("to")){			// 받는 번호로 검색
-					sql += " tr_phone like ? ";
-				}else if(type.equalsIgnoreCase("message")){		// 메세지로 검색
-					sql += "  tr_msg like ? ";
-				}
-				
-				sql +=" AND tr_etc2 = ? AND tr_etc3 = 'n'  ";			
-				pstmt = conn.prepareStatement(sql);	
-				pstmt.setString(1, "%" + search + "%");
-				pstmt.setString(2, "" + userIndex);				
-				rs = pstmt.executeQuery();
-				if(rs.next()){
-					result +=  rs.getInt(1);
-	  			}
+			*/	
+			sql ="SELECT  count(*) FROM sc_log WHERE ";
+			if(type.equalsIgnoreCase("to")){			// 받는 번호로 검색
+				sql += " tr_phone like ? ";
+			}else if(type.equalsIgnoreCase("message")){		// 메세지로 검색
+				sql += "  tr_msg like ? ";
 			}
+			
+			sql +=" AND tr_etc2 = ? AND tr_etc3 = 'n'  ";			
+			pstmt = conn.prepareStatement(sql);	
+			pstmt.setString(1, "%" + search + "%");
+			pstmt.setString(2, "" + userIndex);				
+			rs = pstmt.executeQuery();
+			if(rs.next()){
+				result +=  rs.getInt(1);
+  			}
+		//	}
 		} catch (SQLException e) {
 			e.printStackTrace();
 			System.out.println("getSendResultCount 에러 : " + e.getMessage());
@@ -780,16 +814,23 @@ public class SmsDAO extends CommonCon {
 	
 	/**
 	 * 	전송 내역 삭제
-	 * 관리자가 볼수 있도록 f_is_del필드값만 업데이트처리 한다.
+	 * 관리자가 볼수 있도록 삭제여부필드값만 업데이트처리 한다.
+	 * @param mode 
+	 * 		발송모드(sms, lms,mms)
 	 * @param index
 	 * 	메세지 인덱스
 	 * @return
 	 */
-	public boolean delSendMessage(long index) {
+	public boolean delSendMessage(String mode, long index) {
 		int result = 0;
 		try {
 			conn = dataSource.getConnection();
-			String sql = "UPDATE sms_send_info set f_is_del = 'y'  WHERE f_index = ? ";
+			String sql ="";
+			if(mode.equals("SMS")){	// SMS 모드이면
+				sql = "UPDATE sc_log SET tr_etc3 = 'y'  WHERE tr_num = ? ";
+			}else{ 	// LMS, MMS 모드
+				sql = "UPDATE mms_log SET etc3 = 'y'  WHERE msgkey = ? ";
+			}
 			pstmt = conn.prepareStatement(sql);
 			pstmt.setLong(1, index);						// 메세지 인덱스
 			// update
@@ -816,7 +857,8 @@ public class SmsDAO extends CommonCon {
 	 * @param psCode 
 	 * @return
 	 */
-	public List<SMSBean> getSendAllList(int start, int end, String search, String type, int psCode) {
+	public List<LGSMSBean> getSmsSendAllList(int start, int end, String search, String type, int psCode) {
+		/*
 		List<SMSBean> list = new ArrayList<SMSBean>();
 		SMSBean data = null;		
 		try {
@@ -859,7 +901,75 @@ public class SmsDAO extends CommonCon {
 			    data.setResultMsg(rs.getString("f_result_msg"));			    
 				list.add(data);
 			}
+			*/
+		
+		List<LGSMSBean> list = new ArrayList<LGSMSBean>();
+		LGSMSBean data = null;		
+		
+		try {
+			conn = dataSource.getConnection();
+			Calendar cal = Calendar.getInstance();
+			String logTable = "";
+			String sql;
+		//	while(true){
+			/*
+				//  해당 월 테이블이 있는 검사
+				pstmt = conn.prepareStatement("SHOW TABLES LIKE ? ");
+				String month = String.format("%02d", Integer.valueOf(cal.get(Calendar.MONTH) + 1));
+				logTable =  "sc_log_" + cal.get(Calendar.YEAR) + "" + month;
+				pstmt.setString(1, logTable);
+				rs = pstmt.executeQuery();
+				rs.last();
+				//	해당 테이블이 없으면
+				if( rs.getRow() <= 0 ){
+					System.out.println("e : " + logTable);					
+					break;
+				}
+				// 이전달로 이동
+				cal.add(Calendar.MONTH, -1);
+			*/	
+			sql = "SELECT * FROM sc_log s, user_info u " + 
+					" WHERE  u.f_index = s.tr_etc2 AND ";				
+			if(type.equalsIgnoreCase("from")){	// 보낸전화번호로 검색
+				sql += "  s.tr_etc1 like ? ";
+			}else if(type.equalsIgnoreCase("message")){		// 메세지로 검색
+				sql += " s.tr_msg like ? ";
+			}else{			// 받는 전화번호로 검색
+				sql += " tr_phone like ? ";
+				search = search.replace("-", "");		// 하이픈 제거					
+			}
+			if(psCode != 100){
+				sql += " AND u.f_pscode = " + psCode;
+			}
+			//  지방청 관리자가 아니면 해당 경찰서이하부서만 보이도록
+			if(psCode != 100){
+				sql += " AND u.f_pscode = " + psCode;
+			}					
+			sql +=  " ORDER BY s.TR_SENDDATE DESC LIMIT ?, ? ";
 			
+			pstmt = conn.prepareStatement(sql);		
+			pstmt.setString(1, "%" + search + "%");	
+			pstmt.setInt(2, start -1);
+			pstmt.setInt(3, end);				
+			rs = pstmt.executeQuery();
+			while(rs.next())	{
+				// 문자 내역을 담는다.
+			    data = new LGSMSBean();	
+			    data.setIndex(rs.getLong("tr_num"));
+			    data.setUserId(rs.getString("tr_etc1"));
+			    data.setUserIndex(rs.getInt("tr_etc2"));
+			    data.setCallback(rs.getString("tr_callback"));			    
+			    data.setPhone(rs.getString("tr_phone"));
+			    data.setMsg(rs.getString("tr_msg"));
+			    data.setRealsenddate(rs.getString("tr_realsenddate"));
+			    data.setSenddate(rs.getString("tr_senddate"));					    
+			    data.setSendstate(rs.getString("tr_sendstat"));		
+			    data.setRsltstat(rs.getString("tr_rsltstat"));
+			    data.setMsgtype(rs.getString("tr_msgtype"));   
+				list.add(data);
+			}			
+		//	}
+		
 			return list;
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -871,7 +981,7 @@ public class SmsDAO extends CommonCon {
 	}	
 
 	/**
-	 * 유저발송갯수 구하기
+	 * SMS 전체 유저발송갯수 구하기
 	 * @param search
 	 * 		검색어
 	 * @param type
@@ -879,19 +989,42 @@ public class SmsDAO extends CommonCon {
 	 * @param psCode 
 	 * @return
 	 */
-	public int getSendAllListCount(String search, String type, int psCode) {
+	public int getSmsSendAllListCount(String search, String type, int psCode) {
 		int result = 0;
 		try {
 			conn = dataSource.getConnection();
-			String sql = "SELECT count(s.f_index) FROM sms_send_info s, user_info u " + 
-					" WHERE  u.f_index = s.f_user_index AND ";
-			if(type.equalsIgnoreCase("from")){	// 보낸전화번호로 검색
-				sql += "  s.f_user_id like ? ";
-			}else if(type.equalsIgnoreCase("message")){		// 메세지로 검색
-				sql += " s.f_message like ? ";
-			}else{			// 받는 전화번호로 검색
-				sql += " f_callto like ? ";
+			Calendar cal = Calendar.getInstance();
+			String logTable = "";
+			String sql;
+	//		while(true){
+			/*
+			//  해당 월 테이블이 있는 검사
+			pstmt = conn.prepareStatement("SHOW TABLES LIKE ? ");
+			String month = String.format("%02d", Integer.valueOf(cal.get(Calendar.MONTH) + 1));
+			logTable =  "sc_log_" + cal.get(Calendar.YEAR) + "" + month;
+			
+			pstmt.setString(1, logTable);
+			rs = pstmt.executeQuery();
+			rs.last();
+			//	해당 테이블이 없으면
+			if( rs.getRow() <= 0 ){
+				System.out.println("e : " + logTable);					
+				break;
 			}
+			// 이전달로 이동
+			cal.add(Calendar.MONTH, -1);
+			*/
+			sql = "SELECT count(s.TR_SENDDATE) FROM sc_log s, user_info u " + 
+						" WHERE  u.f_index = s.tr_etc2 AND ";
+			if(type.equalsIgnoreCase("from")){			// 보낸이 번호로 검색
+				sql += " tr_etc1 like ? ";
+			}else if(type.equalsIgnoreCase("message")){		// 메세지로 검색
+				sql += "  tr_msg like ? ";
+			}else{			// 받는 전화번호로 검색
+				sql += " tr_phone like ? ";
+				search = search.replace("-", "");		// 하이픈 제거		
+			}
+			//  지방청 관리자가 아니면 해당 경찰서이하부서만 보이도록
 			if(psCode != 100){
 				sql += " AND u.f_pscode = " + psCode;
 			}	
@@ -899,8 +1032,9 @@ public class SmsDAO extends CommonCon {
 			pstmt.setString(1, "%" + search + "%");
 			rs = pstmt.executeQuery();
 			if(rs.next()){
-				result =  rs.getInt(1);
-			}
+				result +=  rs.getInt(1);
+			}				
+		//	}
 		} catch (SQLException e) {
 			e.printStackTrace();
 			System.out.println("getSendListCount 에러 : " + e.getMessage());
@@ -929,6 +1063,7 @@ public class SmsDAO extends CommonCon {
 				sql += "  f_message like ? ";
 			}else if(type.equalsIgnoreCase("message")){		// 받는 전화번호로 검색
 				sql += " f_callto like ? ";
+				search = search.replace("-", "");		// 하이픈 제거		
 			}
 			
 			pstmt = conn.prepareStatement(sql +" ORDER BY f_index DESC ");		
@@ -966,10 +1101,11 @@ public class SmsDAO extends CommonCon {
 			String sql = "SELECT * FROM sms_send_info " +
 					" WHERE  f_user_index = ? AND" +
 					" f_reserved = 'y' AND f_reserve_date > now() AND ";
-			if(type.equalsIgnoreCase("from")){	// 메세지로 검색
+			if(type.equalsIgnoreCase("message")){	// 메세지로 검색
 				sql += "  f_message like ? ";
-			}else if(type.equalsIgnoreCase("message")){		// 받는 전화번호로 검색
+			}else if(type.equalsIgnoreCase("from")){		// 받는 전화번호로 검색
 				sql += " f_callto like ? ";
+				search = search.replace("-", "");		// 하이픈 제거		
 			}
 			sql += " ORDER BY f_index DESC LIMIT ?, ? ";
 			pstmt = conn.prepareStatement(sql);		
@@ -1026,9 +1162,10 @@ public class SmsDAO extends CommonCon {
 				sql += "  f_message like ? ";
 			}else if(type.equalsIgnoreCase("to")){		// 받는 전화번호로 검색
 				sql += " f_callto like ? ";
+				search = search.replace("-", "");		// 하이픈 제거		
 			}
 			
-			pstmt = conn.prepareStatement(sql +" ORDER BY f_index DESC ");		
+			pstmt = conn.prepareStatement(sql);		
 			pstmt.setInt(1, userIndex);	
 			pstmt.setString(2, "%" + search + "%");				
 			rs = pstmt.executeQuery();
@@ -1044,7 +1181,254 @@ public class SmsDAO extends CommonCon {
 		return result;
 	}	
 	
+	/**
+	 *  Sms 유저 발송 내역 갯수 
+	 * @param userIndex
+	 * 		검색할 유저 인덱스
+	 * @param search 
+	 * 		검색어
+	 * @return
+	 */
+	public int getUserSmsSentCount(int userIndex, String search, String type) {
+		int result = 0;
+		try {
+			conn = dataSource.getConnection();
+			String sql = "SELECT count(s.TR_SENDDATE) FROM sc_log s, user_info u " + 
+						" WHERE s.tr_etc3 = 'n' AND  u.f_index = s.tr_etc2" +
+						" AND u.f_index =? AND ";
+			if(type.equalsIgnoreCase("to")){			//	받는 번호 검색
+				sql += " tr_phone like ? ";
+				search = search.replace("-", "");		// 하이픈 제거	
+			}else if(type.equalsIgnoreCase("message")){		// 메세지로 검색
+				sql += "  tr_msg like ? ";
+			}
+			
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setInt(1, userIndex);				
+			pstmt.setString(2, "%" + search + "%");
+			rs = pstmt.executeQuery();
+			if(rs.next()){
+				result +=  rs.getInt(1);
+			}				
+		//	}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("getUserSmsSentCount 에러 : " + e.getMessage());
+		}finally{
+			connClose();
+		}
+		return result;
+	}	
+	
+	/**
+	 * Sms 유저 발송 내역 갯수(관리자 모드 ) 
+	 * @param userIndex
+	 * 		검색할 유저 인덱스
+	 * @param search 
+	 * 		검색어
+	 * @return
+	 */
+	public int getUserSmsSentAdminCount(int userIndex, String search, String type) {
+		int result = 0;
+		try {
+			conn = dataSource.getConnection();
+			String sql = "SELECT count(s.TR_SENDDATE) FROM sc_log s, user_info u " + 
+						" WHERE  u.f_index = s.tr_etc2" +
+						" AND u.f_index =? AND ";
+			if(type.equalsIgnoreCase("to")){			//	받는 번호 검색
+				sql += " tr_phone like ? ";
+				search = search.replace("-", "");		// 하이픈 제거	
+			}else if(type.equalsIgnoreCase("message")){		// 메세지로 검색
+				sql += "  tr_msg like ? ";
+			}
+			
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setInt(1, userIndex);				
+			pstmt.setString(2, "%" + search + "%");
+			rs = pstmt.executeQuery();
+			if(rs.next()){
+				result +=  rs.getInt(1);
+			}				
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("getUserSmsSentCount 에러 : " + e.getMessage());
+		}finally{
+			connClose();
+		}
+		return result;
+	}		
 
+	
+	/**
+	 * LMS 전체 전송 갯수 구하기
+	 * @param search
+	 * 		검색어
+	 * @param type
+	 * 		타입
+	 * @param psCode
+	 * 		경찰서 코드
+	 * @return
+	 * 		전송 총 갯수
+	 */
+	public int getUserLmsSentCount(int userIndex, String search, String type) {
+		int result = 0;
+		try {
+			conn = dataSource.getConnection();
+			String sql = "SELECT count(s.REQDATE) FROM mms_log s, user_info u " + 
+						" WHERE s.etc3 = 'n' AND u.f_index = s.etc2 " +
+						" AND u.f_index =? AND file_cnt = 0 AND ";
+			if(type.equalsIgnoreCase("message")){		// 메세지로 검색
+				sql += " s.msg like ? ";
+			}else{			// 받는 전화번호로 검색
+				sql += " s.phone like ? ";
+				search = search.replace("-", "");		// 하이픈 제거	
+			}
+			
+			pstmt = conn.prepareStatement(sql);			
+			pstmt.setInt(1, userIndex);							
+			pstmt.setString(2, "%" + search + "%");
+			rs = pstmt.executeQuery();
+			if(rs.next()){
+				result +=  rs.getInt(1);
+			}				
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("getUserLmsSentCount 에러 : " + e.getMessage());
+		}finally{
+			connClose();
+		}
+		return result;
+	}
+	
+	
+	/**
+	 * LMS 전체 전송 갯수 구하기(관리자모드)
+	 * @param search
+	 * 		검색어
+	 * @param type
+	 * 		타입
+	 * @param psCode
+	 * 		경찰서 코드
+	 * @return
+	 * 		전송 총 갯수
+	 */
+	public int getUserLmsSentAdminCount(int userIndex, String search, String type) {
+		int result = 0;
+		try {
+			conn = dataSource.getConnection();
+			String sql = "SELECT count(s.REQDATE) FROM mms_log s, user_info u " + 
+						" WHERE  u.f_index = s.etc2 " +
+						" AND u.f_index =? AND file_cnt = 0 AND ";
+			if(type.equalsIgnoreCase("message")){		// 메세지로 검색
+				sql += " s.msg like ? ";
+			}else{			// 받는 전화번호로 검색
+				sql += " s.phone like ? ";
+				search = search.replace("-", "");		// 하이픈 제거	
+			}
+			
+			pstmt = conn.prepareStatement(sql);			
+			pstmt.setInt(1, userIndex);							
+			pstmt.setString(2, "%" + search + "%");
+			rs = pstmt.executeQuery();
+			if(rs.next()){
+				result +=  rs.getInt(1);
+			}				
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("getUserLmsSentCount 에러 : " + e.getMessage());
+		}finally{
+			connClose();
+		}
+		return result;
+	}
+	
+	
+	/**
+	 * MMS 전체 전송 갯수 구하기
+	 * @param search
+	 * 		검색어
+	 * @param type
+	 * 		타입
+	 * @param psCode
+	 * 		경찰서 코드
+	 * @return
+	 * 		전송 총 갯수
+	 */
+	public int getUserMmsSentCount(int userIndex, String search, String type) {
+		int result = 0;
+		try {
+			conn = dataSource.getConnection();
+			String sql = "SELECT count(s.REQDATE) FROM mms_log s, user_info u " + 
+						" WHERE  s.etc3 = 'n' AND u.f_index = s.etc2 " +
+						" AND u.f_index = ? AND file_cnt > 0 AND ";
+			if(type.equalsIgnoreCase("message")){		// 메세지로 검색
+				sql += " s.msg like ? ";
+			}else{			// 받는 전화번호로 검색
+				sql += " s.phone like ? ";
+				search = search.replace("-", "");		// 하이픈 제거	
+			}
+			
+			pstmt = conn.prepareStatement(sql);			
+			pstmt.setInt(1, userIndex);							
+			pstmt.setString(2, "%" + search + "%");
+			rs = pstmt.executeQuery();
+			if(rs.next()){
+				result +=  rs.getInt(1);
+			}				
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("getUserMmsSentCount 에러 : " + e.getMessage());
+		}finally{
+			connClose();
+		}
+		return result;
+	}	
+	
+	/**
+	 * MMS 전체 전송 갯수 구하기
+	 * @param search
+	 * 		검색어
+	 * @param type
+	 * 		타입
+	 * @param psCode
+	 * 		경찰서 코드
+	 * @return
+	 * 		전송 총 갯수
+	 */
+	public int getUserMmsSentAdminCount(int userIndex, String search, String type) {
+		int result = 0;
+		try {
+			conn = dataSource.getConnection();
+			String sql = "SELECT count(s.REQDATE) FROM mms_log s, user_info u " + 
+						" WHERE  u.f_index = s.etc2 " +
+						" AND u.f_index = ? AND file_cnt > 0 AND ";
+			if(type.equalsIgnoreCase("message")){		// 메세지로 검색
+				sql += " s.msg like ? ";
+			}else{			// 받는 전화번호로 검색
+				sql += " s.phone like ? ";
+				search = search.replace("-", "");		// 하이픈 제거	
+			}
+			
+			pstmt = conn.prepareStatement(sql);			
+			pstmt.setInt(1, userIndex);							
+			pstmt.setString(2, "%" + search + "%");
+			rs = pstmt.executeQuery();
+			if(rs.next()){
+				result +=  rs.getInt(1);
+			}				
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("getUserMmsSentCount 에러 : " + e.getMessage());
+		}finally{
+			connClose();
+		}
+		return result;
+	}	
+	
 
 	/**
 	 * 선택 유저 발송 내역 리스트
@@ -1103,6 +1487,401 @@ public class SmsDAO extends CommonCon {
 			connClose();
 		}
 	}
+	
+	/**
+	 * 선택 유저 발송 내역 리스트
+	 * @param userIndex
+	 * 		유저 인덱스
+	 * @param start
+	 * 		시작 번호
+	 * @param end
+	 * 		페이지 끝번호
+	 * @param search
+	 * 		검색어
+	 * @param type
+	 * 		검색 종류
+	 * @return
+	 * 	해당 유저 발송 내역 리스트
+	 */
+	public List<LGSMSBean> getUserSmsSentList(int userIndex, int start, int end, String search, String type) {
+		List<LGSMSBean> list = new ArrayList<LGSMSBean>();
+		LGSMSBean data = null;		
+		try {
+			conn = dataSource.getConnection();
+			String sql = "SELECT * FROM sc_log s, user_info u " + 
+					" WHERE s.tr_etc3 = 'n' AND u.f_index = s.tr_etc2 " +
+					" AND u.f_index =? AND ";
+			if(type.equalsIgnoreCase("message")){		// 메세지로 검색
+				sql += " s.tr_msg like ? ";
+			}else{			// 받는 전화번호로 검색
+				sql += " tr_phone like ? ";
+				search = search.replace("-", "");		// 하이픈 제거					
+			}
+			
+			sql +=  " ORDER BY s.TR_SENDDATE DESC LIMIT ?, ? ";
+			pstmt = conn.prepareStatement(sql);		
+			pstmt.setInt(1, userIndex);
+			pstmt.setString(2, "%" + search + "%");				
+			pstmt.setInt(3, start -1);
+			pstmt.setInt(4, end);				
+			rs = pstmt.executeQuery();
+			while(rs.next())	{
+				// 문자 내역을 담는다.
+			    data = new LGSMSBean();	
+			    data.setIndex(rs.getLong("tr_num"));
+			    data.setUserId(rs.getString("tr_etc1"));
+			    data.setUserIndex(rs.getInt("tr_etc2"));
+			    data.setCallback(rs.getString("tr_callback"));			    
+			    data.setPhone(rs.getString("tr_phone"));
+			    data.setMsg(rs.getString("tr_msg"));
+			    data.setRealsenddate(rs.getString("tr_realsenddate"));
+			    data.setSenddate(rs.getString("tr_senddate"));					    
+			    data.setSendstate(rs.getString("tr_sendstat"));		
+			    data.setRsltstat(rs.getString("tr_rsltstat"));
+			    data.setMsgtype(rs.getString("tr_msgtype"));   
+				list.add(data);
+			}			
+		
+			return list;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("getUserSmsSentList 에러 : " + e.getMessage());
+			return null;
+		}finally{
+			connClose();
+		}
+	}
+	
+	
+	/**
+	 * 선택 유저 발송 내역 리스트 (관리자모드)
+	 * @param userIndex
+	 * 		유저 인덱스
+	 * @param start
+	 * 		시작 번호
+	 * @param end
+	 * 		페이지 끝번호
+	 * @param search
+	 * 		검색어
+	 * @param type
+	 * 		검색 종류
+	 * @return
+	 * 	해당 유저 발송 내역 리스트
+	 */
+	public List<LGSMSBean> getUserSmsSentAdminList(int userIndex, int start, int end, String search, String type) {
+		List<LGSMSBean> list = new ArrayList<LGSMSBean>();
+		LGSMSBean data = null;		
+		try {
+			conn = dataSource.getConnection();
+			String sql = "SELECT * FROM sc_log s, user_info u " + 
+					" WHERE u.f_index = s.tr_etc2 " +
+					" AND u.f_index =? AND ";
+			if(type.equalsIgnoreCase("message")){		// 메세지로 검색
+				sql += " s.tr_msg like ? ";
+			}else{			// 받는 전화번호로 검색
+				sql += " tr_phone like ? ";
+				search = search.replace("-", "");		// 하이픈 제거					
+			}
+			
+			sql +=  " ORDER BY s.TR_SENDDATE DESC LIMIT ?, ? ";
+			pstmt = conn.prepareStatement(sql);		
+			pstmt.setInt(1, userIndex);
+			pstmt.setString(2, "%" + search + "%");				
+			pstmt.setInt(3, start -1);
+			pstmt.setInt(4, end);				
+			rs = pstmt.executeQuery();
+			while(rs.next())	{
+				// 문자 내역을 담는다.
+			    data = new LGSMSBean();	
+			    data.setIndex(rs.getLong("tr_num"));
+			    data.setUserId(rs.getString("tr_etc1"));
+			    data.setUserIndex(rs.getInt("tr_etc2"));
+			    data.setCallback(rs.getString("tr_callback"));			    
+			    data.setPhone(rs.getString("tr_phone"));
+			    data.setMsg(rs.getString("tr_msg"));
+			    data.setRealsenddate(rs.getString("tr_realsenddate"));
+			    data.setSenddate(rs.getString("tr_senddate"));					    
+			    data.setSendstate(rs.getString("tr_sendstat"));		
+			    data.setRsltstat(rs.getString("tr_rsltstat"));
+			    data.setMsgtype(rs.getString("tr_msgtype"));   
+				list.add(data);
+			}			
+		
+			return list;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("getUserSmsSentList 에러 : " + e.getMessage());
+			return null;
+		}finally{
+			connClose();
+		}
+	}	
+	
+	
+	/**
+	 * LMS 유저 발송 내역 리스트
+	 * @param userIndex
+	 * 		유저 인덱스
+	 * @param start
+	 * 		시작 번호
+	 * @param end
+	 * 		페이지 끝번호
+	 * @param search
+	 * 		검색어
+	 * @param type
+	 * 		검색 종류
+	 * @return
+	 * 	해당 유저 발송 내역 리스트
+	 */
+	public List<LGMMSBean> getUserLmsSentList(int userIndex, int start, int end, String search, String type) {
+		List<LGMMSBean> list = new ArrayList<LGMMSBean>();
+		LGMMSBean data = null;		
+		try {
+			conn = dataSource.getConnection();
+			String sql = "SELECT * FROM mms_log s, user_info u " + 
+					" WHERE  s.etc3 = 'n' AND u.f_index = s.etc2" +
+					" AND u.f_index = ? AND file_cnt = 0 AND ";				
+			if(type.equalsIgnoreCase("message")){		// 메세지로 검색
+				sql += " s.msg like ? ";
+			}else{			// 받는 전화번호로 검색
+				sql += " s.phone like ? ";
+				search = search.replace("-", "");		// 하이픈 제거	
+			}
+			sql +=  " ORDER BY s.REQDATE DESC LIMIT ?, ? ";
+			
+			pstmt = conn.prepareStatement(sql);		
+			pstmt.setInt(1, userIndex);			
+			pstmt.setString(2, "%" + search + "%");	
+			pstmt.setInt(3, start -1);
+			pstmt.setInt(4, end);				
+			rs = pstmt.executeQuery();
+			while(rs.next())	{
+				// mms 내역을 담는다.
+			    data = new LGMMSBean();	
+			    data.setIndex(rs.getLong("msgkey"));
+			    data.setUserId(rs.getString("etc1"));
+			    data.setUserIndex(rs.getInt("etc2"));
+			    data.setCallback(rs.getString("callback"));			    
+			    data.setPhone(rs.getString("phone"));
+			    data.setMsg(rs.getString("msg"));
+			    data.setSubject(rs.getString("subject"));
+			    data.setTelcoinfo(rs.getString("telcoinfo"));
+			    data.setRealsenddate(rs.getString("sentdate"));
+			    data.setSenddate(rs.getString("reqdate"));		
+			    data.setRsltstat(rs.getString("rslt"));
+			    data.setType(rs.getString("type"));   
+				list.add(data);
+			}			
+		
+			return list;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("getUserLmsSentList 에러 : " + e.getMessage());
+			return null;
+		}finally{
+			connClose();
+		}
+	}
+	
+	/**
+	 * LMS 유저 발송 내역 리스트(관리자모드)
+	 * @param userIndex
+	 * 		유저 인덱스
+	 * @param start
+	 * 		시작 번호
+	 * @param end
+	 * 		페이지 끝번호
+	 * @param search
+	 * 		검색어
+	 * @param type
+	 * 		검색 종류
+	 * @return
+	 * 	해당 유저 발송 내역 리스트
+	 */
+	public List<LGMMSBean> getUserLmsSentAdminList(int userIndex, int start, int end, String search, String type) {
+		List<LGMMSBean> list = new ArrayList<LGMMSBean>();
+		LGMMSBean data = null;		
+		try {
+			conn = dataSource.getConnection();
+			String sql = "SELECT * FROM mms_log s, user_info u " + 
+					" WHERE  u.f_index = s.etc2" +
+					" AND u.f_index = ? AND file_cnt = 0 AND ";				
+			if(type.equalsIgnoreCase("message")){		// 메세지로 검색
+				sql += " s.msg like ? ";
+			}else{			// 받는 전화번호로 검색
+				sql += " s.phone like ? ";
+				search = search.replace("-", "");		// 하이픈 제거	
+			}
+			sql +=  " ORDER BY s.REQDATE DESC LIMIT ?, ? ";
+			
+			pstmt = conn.prepareStatement(sql);		
+			pstmt.setInt(1, userIndex);			
+			pstmt.setString(2, "%" + search + "%");	
+			pstmt.setInt(3, start -1);
+			pstmt.setInt(4, end);				
+			rs = pstmt.executeQuery();
+			while(rs.next())	{
+				// mms 내역을 담는다.
+			    data = new LGMMSBean();	
+			    data.setIndex(rs.getLong("msgkey"));
+			    data.setUserId(rs.getString("etc1"));
+			    data.setUserIndex(rs.getInt("etc2"));
+			    data.setCallback(rs.getString("callback"));			    
+			    data.setPhone(rs.getString("phone"));
+			    data.setMsg(rs.getString("msg"));
+			    data.setSubject(rs.getString("subject"));
+			    data.setTelcoinfo(rs.getString("telcoinfo"));
+			    data.setRealsenddate(rs.getString("sentdate"));
+			    data.setSenddate(rs.getString("reqdate"));		
+			    data.setRsltstat(rs.getString("rslt"));
+			    data.setType(rs.getString("type"));   
+				list.add(data);
+			}			
+		
+			return list;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("getUserLmsSentList 에러 : " + e.getMessage());
+			return null;
+		}finally{
+			connClose();
+		}
+	}	
+	
+	
+	/**
+	 * MMS 유저 발송 내역 리스트
+	 * @param userIndex
+	 * 		유저 인덱스
+	 * @param start
+	 * 		시작 번호
+	 * @param end
+	 * 		페이지 끝번호
+	 * @param search
+	 * 		검색어
+	 * @param type
+	 * 		검색 종류
+	 * @return
+	 * 	해당 유저 발송 내역 리스트
+	 */
+	public List<LGMMSBean> getUserMmsSentList(int userIndex, int start, int end, String search, String type) {
+		List<LGMMSBean> list = new ArrayList<LGMMSBean>();
+		LGMMSBean data = null;		
+		try {
+			conn = dataSource.getConnection();
+			// 실제 파일 발송 갯수가 1개 이상일때 MMS로 판별
+			String sql = "SELECT * FROM mms_log s, user_info u " + 
+					" WHERE s.etc3 = 'n' AND  u.f_index = s.etc2" +
+					" AND u.f_index = ? AND file_cnt > 0 AND ";				
+			if(type.equalsIgnoreCase("message")){		// 메세지로 검색
+				sql += " s.msg like ? ";
+			}else{			// 받는 전화번호로 검색
+				sql += " s.phone like ? ";
+				search = search.replace("-", "");		// 하이픈 제거	
+			}
+			sql +=  " ORDER BY s.REQDATE DESC LIMIT ?, ? ";
+			
+			pstmt = conn.prepareStatement(sql);		
+			pstmt.setInt(1, userIndex);			
+			pstmt.setString(2, "%" + search + "%");	
+			pstmt.setInt(3, start -1);
+			pstmt.setInt(4, end);				
+			rs = pstmt.executeQuery();
+			while(rs.next())	{
+				// mms 내역을 담는다.
+			    data = new LGMMSBean();	
+			    data.setIndex(rs.getLong("msgkey"));
+			    data.setUserId(rs.getString("etc1"));
+			    data.setUserIndex(rs.getInt("etc2"));
+			    data.setCallback(rs.getString("callback"));			    
+			    data.setPhone(rs.getString("phone"));
+			    data.setMsg(rs.getString("msg"));
+			    data.setSubject(rs.getString("subject"));
+			    data.setTelcoinfo(rs.getString("telcoinfo"));
+			    data.setRealsenddate(rs.getString("sentdate"));
+			    data.setSenddate(rs.getString("reqdate"));		
+			    data.setRsltstat(rs.getString("rslt"));
+			    data.setType(rs.getString("type"));   
+				list.add(data);
+			}			
+		
+			return list;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("getUserMmsSentList 에러 : " + e.getMessage());
+			return null;
+		}finally{
+			connClose();
+		}
+	}	
+	
+	
+	/**
+	 * MMS 유저 발송 내역 리스트(관리자모드)
+	 * @param userIndex
+	 * 		유저 인덱스
+	 * @param start
+	 * 		시작 번호
+	 * @param end
+	 * 		페이지 끝번호
+	 * @param search
+	 * 		검색어
+	 * @param type
+	 * 		검색 종류
+	 * @return
+	 * 	해당 유저 발송 내역 리스트
+	 */
+	public List<LGMMSBean> getUserMmsSentAdminList(int userIndex, int start, int end, String search, String type) {
+		List<LGMMSBean> list = new ArrayList<LGMMSBean>();
+		LGMMSBean data = null;		
+		try {
+			conn = dataSource.getConnection();
+			// 실제 파일 발송 갯수가 1개 이상일때 MMS로 판별
+			String sql = "SELECT * FROM mms_log s, user_info u " + 
+					" WHERE u.f_index = s.etc2" +
+					" AND u.f_index = ? AND file_cnt > 0 AND ";				
+			if(type.equalsIgnoreCase("message")){		// 메세지로 검색
+				sql += " s.msg like ? ";
+			}else{			// 받는 전화번호로 검색
+				sql += " s.phone like ? ";
+				search = search.replace("-", "");		// 하이픈 제거	
+			}
+			sql +=  " ORDER BY s.REQDATE DESC LIMIT ?, ? ";
+			
+			pstmt = conn.prepareStatement(sql);		
+			pstmt.setInt(1, userIndex);			
+			pstmt.setString(2, "%" + search + "%");	
+			pstmt.setInt(3, start -1);
+			pstmt.setInt(4, end);				
+			rs = pstmt.executeQuery();
+			while(rs.next())	{
+				// mms 내역을 담는다.
+			    data = new LGMMSBean();	
+			    data.setIndex(rs.getLong("msgkey"));
+			    data.setUserId(rs.getString("etc1"));
+			    data.setUserIndex(rs.getInt("etc2"));
+			    data.setCallback(rs.getString("callback"));			    
+			    data.setPhone(rs.getString("phone"));
+			    data.setMsg(rs.getString("msg"));
+			    data.setSubject(rs.getString("subject"));
+			    data.setTelcoinfo(rs.getString("telcoinfo"));
+			    data.setRealsenddate(rs.getString("sentdate"));
+			    data.setSenddate(rs.getString("reqdate"));		
+			    data.setRsltstat(rs.getString("rslt"));
+			    data.setType(rs.getString("type"));   
+				list.add(data);
+			}			
+		
+			return list;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("getUserMmsSentList 에러 : " + e.getMessage());
+			return null;
+		}finally{
+			connClose();
+		}
+	}	
+	
 
 	
 	public List<Message> getMessagesList(int userIndex, int groupIndex, int start, int end) {
@@ -1162,4 +1941,994 @@ public class SmsDAO extends CommonCon {
 		return result;
 	}
 
+	/**
+	 * LMS 전체 전송 갯수 구하기
+	 * @param search
+	 * 		검색어
+	 * @param type
+	 * 		타입
+	 * @param psCode
+	 * 		경찰서 코드
+	 * @return
+	 * 		전송 총 갯수
+	 */
+	public int getLmsSendAllListCount(String search, String type, int psCode) {
+		int result = 0;
+		try {
+			conn = dataSource.getConnection();
+			Calendar cal = Calendar.getInstance();
+			String logTable = "";
+			String sql;
+			
+			/*
+			// 에이전트 월별 설정시 해당 테이블 존재 검사
+			//  해당 월 테이블이 있는 검사
+			pstmt = conn.prepareStatement("SHOW TABLES LIKE ? ");
+			String month = String.format("%02d", Integer.valueOf(cal.get(Calendar.MONTH) + 1));
+			logTable =  "mms_log_" + cal.get(Calendar.YEAR) + "" + month;
+			pstmt.setString(1, logTable);
+			rs = pstmt.executeQuery();
+			rs.last();
+			//	해당 테이블이 없으면
+			if( rs.getRow() <= 0 ){
+				System.out.println("e : " + logTable);					
+				break;
+			}
+			// 이전달로 이동
+			cal.add(Calendar.MONTH, -1);
+			*/
+			sql = "SELECT count(s.REQDATE) FROM mms_log s, user_info u " + 
+						" WHERE  u.f_index = s.etc2 AND file_cnt = 0 AND ";
+			if(type.equalsIgnoreCase("from")){	// 보낸전화번호로 검색
+				sql += "  s.etc1 like ? ";
+			}else if(type.equalsIgnoreCase("message")){		// 메세지로 검색
+				sql += " s.msg like ? ";
+			}else{			// 받는 전화번호로 검색
+				sql += " s.phone like ? ";
+				search = search.replace("-", "");		// 하이픈 제거	
+			}
+			
+			//  지방청 관리자가 아니면 해당 경찰서이하부서만 보이도록
+			if(psCode != 100){
+				sql += " AND u.f_pscode = " + psCode;
+			}
+			
+			pstmt = conn.prepareStatement(sql);			
+			pstmt.setString(1, "%" + search + "%");
+			rs = pstmt.executeQuery();
+			if(rs.next()){
+				result +=  rs.getInt(1);
+			}				
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("getLmsSendAllListCount 에러 : " + e.getMessage());
+		}finally{
+			connClose();
+		}
+		return result;
+	}
+	
+	/**
+	 * MMS 전체 전송 갯수 구하기
+	 * @param search
+	 * 		검색어
+	 * @param type
+	 * 		타입
+	 * @param psCode
+	 * 		경찰서 코드
+	 * @return
+	 * 		전송 총 갯수
+	 */
+	public int getMmsSendAllListCount(String search, String type, int psCode) {
+		int result = 0;
+		try {
+			conn = dataSource.getConnection();
+			String sql = "SELECT count(s.REQDATE) FROM mms_log s, user_info u " + 
+						" WHERE  u.f_index = s.etc2 AND file_cnt > 0 AND ";
+			if(type.equalsIgnoreCase("from")){			// 받는 아이디 검색
+				sql += " etc1 like ? ";
+			}else if(type.equalsIgnoreCase("message")){		// 메세지로 검색
+				sql += "  msg like ? ";
+			}else{			// 받는 전화번호로 검색
+				sql += " phone like ? ";
+				search = search.replace("-", "");		// 하이픈 제거	
+			}
+			//  지방청 관리자가 아니면 해당 경찰서이하부서만 보이도록
+			if(psCode != 100){
+				sql += " AND u.f_pscode = " + psCode;
+			}	
+			pstmt = conn.prepareStatement(sql);			
+			pstmt.setString(1, "%" + search + "%");
+			rs = pstmt.executeQuery();
+			if(rs.next()){
+				result +=  rs.getInt(1);
+			}				
+			//}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("getMmsSendAllListCount 에러 : " + e.getMessage());
+		}finally{
+			connClose();
+		}
+		return result;
+	}
+
+	
+	
+	/**
+	 * LMS	전체 발송 갯수 구하기
+	 * @param start
+	 * 		시작 번호
+	 * @param end
+	 * 		페이지 끝번호
+	 * @param search
+	 * 		검색어
+	 * @param type
+	 * 		검색종류
+	 * @param psCode
+	 * 		경찰서 코드
+	 * @return
+	 * 	LMS List
+	 */
+	public List<LGMMSBean> getLmsSendAllList(int start, int end,
+			String search, String type, int psCode) {
+		List<LGMMSBean> list = new ArrayList<LGMMSBean>();
+		LGMMSBean data = null;		
+		try {
+			conn = dataSource.getConnection();
+			String sql = "SELECT * FROM mms_log s, user_info u " + 
+						" WHERE  u.f_index = s.etc2 AND file_cnt = 0 AND ";				
+				if(type.equalsIgnoreCase("from")){	// 보낸전화번호로 검색
+					sql += "  s.etc1 like ? ";
+				}else if(type.equalsIgnoreCase("message")){		// 메세지로 검색
+					sql += " s.msg like ? ";
+				}else{			// 받는 전화번호로 검색
+					sql += " s.phone like ? ";
+					search = search.replace("-", "");		// 하이픈 제거	
+				}
+				
+				//  지방청 관리자가 아니면 해당 경찰서이하부서만 보이도록
+				if(psCode != 100){
+					sql += " AND u.f_pscode = " + psCode;
+				}					
+				sql +=  " ORDER BY s.REQDATE DESC LIMIT ?, ? ";
+				
+				pstmt = conn.prepareStatement(sql);		
+				pstmt.setString(1, "%" + search + "%");	
+				pstmt.setInt(2, start -1);
+				pstmt.setInt(3, end);				
+				rs = pstmt.executeQuery();
+				while(rs.next())	{
+					// mms 내역을 담는다.
+				    data = new LGMMSBean();	
+				    data.setIndex(rs.getLong("msgkey"));
+				    data.setUserId(rs.getString("etc1"));
+				    data.setUserIndex(rs.getInt("etc2"));
+				    data.setCallback(rs.getString("callback"));			    
+				    data.setPhone(rs.getString("phone"));
+				    data.setMsg(rs.getString("msg"));
+				    data.setSubject(rs.getString("subject"));
+				    data.setTelcoinfo(rs.getString("telcoinfo"));
+				    data.setRealsenddate(rs.getString("sentdate"));
+				    data.setSenddate(rs.getString("reqdate"));		
+				    data.setRsltstat(rs.getString("rslt"));
+				    data.setType(rs.getString("type"));   
+					list.add(data);
+				}			
+		//	}
+		
+			return list;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("getLmsSendAllList 에러 : " + e.getMessage());
+			return null;
+		}finally{
+			connClose();
+		}
+	}
+
+	/**
+	 * MMS	전체 발송 갯수 구하기
+	 * @param start
+	 * 		시작 번호
+	 * @param end
+	 * 		페이지 끝번호
+	 * @param search
+	 * 		검색어
+	 * @param type
+	 * 		검색종류
+	 * @param psCode
+	 * 		경찰서 코드
+	 * @return
+	 * 	MMS List
+	 */
+	public List<LGMMSBean> getMmsSendAllList(int start, int end,
+			String search, String type, int psCode) {
+		List<LGMMSBean> list = new ArrayList<LGMMSBean>();
+		LGMMSBean data = null;		
+		try {
+			conn = dataSource.getConnection();
+			String sql = "SELECT * FROM mms_log s, user_info u " + 
+					" WHERE  u.f_index = s.etc2 AND file_cnt > 0 AND ";	
+			if(type.equalsIgnoreCase("from")){	// 보낸전화번호로 검색
+				sql += "  s.etc1 like ? ";
+			}else if(type.equalsIgnoreCase("message")){		// 메세지로 검색
+				sql += " s.msg like ? ";
+			}else{			// 받는 전화번호로 검색
+				sql += " s.phone like ? ";
+				search = search.replace("-", "");		// 하이픈 제거					
+			}
+			
+			//  지방청 관리자가 아니면 해당 경찰서이하부서만 보이도록
+			if(psCode != 100){
+				sql += " AND u.f_pscode = " + psCode;
+			}					
+			sql +=  " ORDER BY s.REQDATE DESC LIMIT ?, ? ";
+			
+			pstmt = conn.prepareStatement(sql);		
+			pstmt.setString(1, "%" + search + "%");	
+			pstmt.setInt(2, start -1);
+			pstmt.setInt(3, end);				
+			rs = pstmt.executeQuery();
+			while(rs.next())	{
+				// mms 내역을 담는다.
+			    data = new LGMMSBean();	
+			    data.setIndex(rs.getLong("msgkey"));
+			    data.setUserId(rs.getString("etc1"));
+			    data.setUserIndex(rs.getInt("etc2"));
+			    data.setCallback(rs.getString("callback"));			    
+			    data.setPhone(rs.getString("phone"));
+			    data.setMsg(rs.getString("msg"));
+			    data.setSubject(rs.getString("subject"));
+			    data.setTelcoinfo(rs.getString("telcoinfo"));
+			    data.setRealsenddate(rs.getString("sentdate"));
+			    data.setSenddate(rs.getString("reqdate"));		
+			    data.setRsltstat(rs.getString("rslt"));
+			    data.setType(rs.getString("type"));   
+				list.add(data);
+			}			
+			//}
+			return list;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("getMmsSendAllList 에러 : " + e.getMessage());
+			return null;
+		}finally{
+			connClose();
+		}
+	}
+
+	/**
+	 * SMS 예약 특정 유저발송갯수 구하기
+	 * @param search
+	 * 		검색어
+	 * @param type
+	 * 		검색종류
+	 * @param psCode 
+	 * @return
+	 */
+	public int getUserReserveSmsSendListCount(int userIndex, String search, String type){
+		int result = 0;
+		try {
+			conn = dataSource.getConnection();
+			String sql = "SELECT count(s.TR_SENDDATE) FROM sc_tran s, user_info u " + 
+						" WHERE  u.f_index = s.tr_etc2 AND s.tr_senddate > now() " +
+						" AND u.f_index =? AND ";
+			if(type.equalsIgnoreCase("to")){			// 받는 번호로 검색
+				sql += " tr_phone like ? ";
+				search = search.replace("-", "");		// 하이픈 제거
+			}else if(type.equalsIgnoreCase("message")){		// 메세지로 검색
+				sql += "  tr_msg like ? ";
+			}
+			
+			pstmt = conn.prepareStatement(sql);			
+			pstmt.setInt(1, userIndex);			
+			pstmt.setString(2, "%" + search + "%");
+			rs = pstmt.executeQuery();
+			if(rs.next()){
+				result =  rs.getInt(1);
+			}				
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("getUserReserveSmsSendListCount 에러 : " + e.getMessage());
+		}finally{
+			connClose();
+		}
+		return result;
+	}
+	
+	/**
+	 * LMS 예약 전체 전송 갯수 구하기
+	 * @param search
+	 * 		검색어
+	 * @param type
+	 * 		타입
+	 * @param psCode
+	 * 		경찰서 코드
+	 * @return
+	 * 		전송 총 갯수
+	 */
+	public int getUserReserveLmsSendListCount(int userIndex, String search, String type){
+		int result = 0;
+		try {
+			conn = dataSource.getConnection();
+			String sql = "SELECT count(s.REQDATE) FROM mms_msg s, user_info u " + 
+						" WHERE  u.f_index = s.etc2 AND u.f_index = ?  " +
+						" AND file_cnt = 0 AND s.reqdate > now() AND ";
+			if(type.equalsIgnoreCase("to")){			// 받는 번호로 검색
+				sql += " s.phone like ? ";
+				search = search.replace("-", "");		// 하이픈 제거				
+			}else if(type.equalsIgnoreCase("message")){		// 메세지로 검색
+				sql += "  s.msg like ? ";
+			}
+			
+			pstmt = conn.prepareStatement(sql);	
+			pstmt.setInt(1, userIndex);			
+			pstmt.setString(2, "%" + search + "%");
+			rs = pstmt.executeQuery();
+			if(rs.next()){
+				result +=  rs.getInt(1);
+			}				
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("getUserReserveLmsSendListCount 에러 : " + e.getMessage());
+		}finally{
+			connClose();
+		}
+		return result;
+	}
+	
+	/**
+	 * MMS 예약 전체 전송 갯수 구하기
+	 * @param search
+	 * 		검색어
+	 * @param type
+	 * 		타입
+	 * @param psCode
+	 * 		경찰서 코드
+	 * @return
+	 * 		전송 총 갯수
+	 */
+	public int getUserReserveMmsSendListCount(int userIndex, String search, String type){
+		int result = 0;
+		try {
+			conn = dataSource.getConnection();
+			String sql = "SELECT count(s.REQDATE) FROM mms_msg s, user_info u " + 
+					" WHERE  u.f_index = s.etc2 AND u.f_index = ?  " +
+					" AND file_cnt > 0 AND s.reqdate > now() AND ";
+			if(type.equalsIgnoreCase("to")){			// 받는 번호로 검색
+				sql += " s.phone like ? ";
+				search = search.replace("-", "");		// 하이픈 제거				
+			}else if(type.equalsIgnoreCase("message")){		// 메세지로 검색
+				sql += "  s.msg like ? ";
+			}
+			
+			pstmt = conn.prepareStatement(sql);			
+			pstmt.setInt(1, userIndex);
+			pstmt.setString(2, "%" + search + "%");			
+			rs = pstmt.executeQuery();
+			if(rs.next()){
+				result +=  rs.getInt(1);
+			}				
+			//}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("getReserveMmsSendAllListCount 에러 : " + e.getMessage());
+		}finally{
+			connClose();
+		}
+		return result;
+	}
+	
+	/**
+	 *	SMS 특정 유저 예약 전송 결과 내역 리스트
+	 * @param start
+	 * @param end
+	 * @param search
+	 * 		검색어
+	 * @param type
+	 * 		검색종류
+	 * @return
+	 */
+	public List<LGSMSBean> getUserReserveSmsSendList(
+			int userIndex, int start, int end, String search, String type){
+		
+		List<LGSMSBean> list = new ArrayList<LGSMSBean>();
+		LGSMSBean data = null;		
+		
+		try {
+			conn = dataSource.getConnection();
+			String sql = "SELECT * FROM sc_tran s, user_info u " + 
+					" WHERE  u.f_index = s.tr_etc2 AND" +
+					" s.tr_senddate > now() AND u.f_index = ? AND ";				
+			if(type.equalsIgnoreCase("to")){			// 받는 번호로 검색
+				sql += " tr_phone like ? ";
+				search = search.replace("-", "");		// 하이픈 제거				
+			}else if(type.equalsIgnoreCase("message")){		// 메세지로 검색
+				sql += "  tr_msg like ? ";
+			}
+			
+			sql +=  " ORDER BY s.TR_SENDDATE DESC LIMIT ?, ? ";
+			
+			pstmt = conn.prepareStatement(sql);		
+			pstmt.setInt(1, userIndex);				
+			pstmt.setString(2, "%" + search + "%");	
+			pstmt.setInt(3, start -1);
+			pstmt.setInt(4, end);				
+			rs = pstmt.executeQuery();
+			while(rs.next())	{
+				// 문자 내역을 담는다.
+			    data = new LGSMSBean();	
+			    data.setIndex(rs.getLong("tr_num"));
+			    data.setUserId(rs.getString("tr_etc1"));
+			    data.setUserIndex(rs.getInt("tr_etc2"));
+			    data.setCallback(rs.getString("tr_callback"));		
+			    data.setSenddate(rs.getString("tr_senddate"));					    
+			    data.setPhone(rs.getString("tr_phone"));
+			    data.setMsg(rs.getString("tr_msg"));
+			    data.setRealsenddate(rs.getString("tr_realsenddate"));
+			    data.setSendstate(rs.getString("tr_sendstat"));		
+			    data.setRsltstat(rs.getString("tr_rsltstat"));
+			    data.setMsgtype(rs.getString("tr_msgtype"));   
+				list.add(data);
+			}			
+		//	}
+		
+			return list;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("getUserReserveSmsSendList 에러 : " + e.getMessage());
+			return null;
+		}finally{
+			connClose();
+		}
+	}		
+	
+	/**
+	 * LMS 특정유저 예약 전체 발송 리스트
+	 * @param start
+	 * 		시작 번호
+	 * @param end
+	 * 		페이지 끝번호
+	 * @param search
+	 * 		검색어
+	 * @param type
+	 * 		검색종류
+	 * @param psCode
+	 * 		경찰서 코드
+	 * @return
+	 * 	LMS List
+	 */
+	public List<LGMMSBean> getUserReserveLmsSendList(int userIndex, int start, int end, String search, String type){	
+		List<LGMMSBean> list = new ArrayList<LGMMSBean>();
+		LGMMSBean data = null;		
+		try {
+			conn = dataSource.getConnection();
+			String sql = "SELECT * FROM mms_msg s, user_info u " + 
+						" WHERE  u.f_index = s.etc2 AND" +
+						" file_cnt = 0 AND s.reqdate > now() " +
+						" AND u.f_index = ? AND ";				
+			if(type.equalsIgnoreCase("to")){			// 받는 번호로 검색
+				sql += " s.phone like ? ";
+				search = search.replace("-", "");		// 하이픈 제거						
+			}else if(type.equalsIgnoreCase("message")){		// 메세지로 검색
+				sql += "  s.msg like ? ";
+			}
+			sql +=  " ORDER BY s.REQDATE DESC LIMIT ?, ? ";
+			
+			pstmt = conn.prepareStatement(sql);		
+			pstmt.setInt(1, userIndex);					
+			pstmt.setString(2, "%" + search + "%");	
+			pstmt.setInt(3, start -1);
+			pstmt.setInt(4, end);				
+			rs = pstmt.executeQuery();
+			while(rs.next())	{
+				// mms 내역을 담는다.
+			    data = new LGMMSBean();	
+			    data.setIndex(rs.getLong("msgkey"));
+			    data.setUserId(rs.getString("etc1"));
+			    data.setUserIndex(rs.getInt("etc2"));
+			    data.setCallback(rs.getString("callback"));			    
+			    data.setPhone(rs.getString("phone"));
+			    data.setMsg(rs.getString("msg"));
+			    data.setSubject(rs.getString("subject"));
+			    data.setTelcoinfo(rs.getString("telcoinfo"));
+			    data.setRealsenddate(rs.getString("sentdate"));
+			    data.setSenddate(rs.getString("reqdate"));		
+			    data.setRsltstat(rs.getString("rslt"));
+			    data.setType(rs.getString("type"));   
+				list.add(data);
+			}			
+		
+			return list;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("getUserReserveLmsSendList 에러 : " + e.getMessage());
+			return null;
+		}finally{
+			connClose();
+		}
+	}
+
+	/**
+	 * MMS	예약 전체 발송 리스트
+	 * @param start
+	 * 		시작 번호
+	 * @param end
+	 * 		페이지 끝번호
+	 * @param search
+	 * 		검색어
+	 * @param type
+	 * 		검색종류
+	 * @return
+	 * 	MMS List
+	 */
+	public List<LGMMSBean> getUserReserveMmsSendList(int userIndex, int start, int end, String search, String type){	
+		List<LGMMSBean> list = new ArrayList<LGMMSBean>();
+		LGMMSBean data = null;		
+		try {
+			conn = dataSource.getConnection();
+			String sql = "SELECT * FROM mms_msg s, user_info u " + 
+						" WHERE  u.f_index = s.etc2 AND" +
+						" file_cnt > 0 AND s.reqdate > now() " +
+						" AND u.f_index = ? AND ";				
+			if(type.equalsIgnoreCase("to")){			// 받는 번호로 검색
+				sql += " s.phone like ? ";
+				search = search.replace("-", "");		// 하이픈 제거						
+			}else if(type.equalsIgnoreCase("message")){		// 메세지로 검색
+				sql += " s.msg like ? ";
+			}
+			sql +=  " ORDER BY s.REQDATE DESC LIMIT ?, ? ";
+			
+			pstmt = conn.prepareStatement(sql);		
+			pstmt.setInt(1, userIndex);					
+			pstmt.setString(2, "%" + search + "%");	
+			pstmt.setInt(3, start -1);
+			pstmt.setInt(4, end);				
+			rs = pstmt.executeQuery();
+			while(rs.next())	{
+				// mms 내역을 담는다.
+			    data = new LGMMSBean();	
+			    data.setIndex(rs.getLong("msgkey"));
+			    data.setUserId(rs.getString("etc1"));
+			    data.setUserIndex(rs.getInt("etc2"));
+			    data.setCallback(rs.getString("callback"));			    
+			    data.setPhone(rs.getString("phone"));
+			    data.setMsg(rs.getString("msg"));
+			    data.setSubject(rs.getString("subject"));
+			    data.setTelcoinfo(rs.getString("telcoinfo"));
+			    data.setRealsenddate(rs.getString("sentdate"));
+			    data.setSenddate(rs.getString("reqdate"));		
+			    data.setRsltstat(rs.getString("rslt"));
+			    data.setType(rs.getString("type"));   
+				list.add(data);
+			}			
+		
+			return list;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("getUserReserveMmsSendList 에러 : " + e.getMessage());
+			return null;
+		}finally{
+			connClose();
+		}
+	}	
+
+	/**
+	 * SMS 예약 전체 유저발송갯수 구하기
+	 * @param search
+	 * 		검색어
+	 * @param type
+	 * 		검색종류
+	 * @param psCode 
+	 * @return
+	 */
+	public int getReserveSmsSendAllListCount(String search, String type, int psCode) {
+		int result = 0;
+		try {
+			conn = dataSource.getConnection();
+			String sql = "SELECT count(s.TR_SENDDATE) FROM sc_tran s, user_info u " + 
+						" WHERE  u.f_index = s.tr_etc2 AND s.tr_senddate > now()  AND ";
+			if(type.equalsIgnoreCase("to")){			// 받는 번호로 검색
+				sql += " tr_phone like ? ";
+				search = search.replace("-", "");		// 하이픈 제거						
+			}else if(type.equalsIgnoreCase("message")){		// 메세지로 검색
+				sql += "  tr_msg like ? ";
+			}else{			// 받는 전화번호로 검색
+				sql += " tr_phone like ? ";
+				search = search.replace("-", "");		// 하이픈 제거	
+			}
+			//  지방청 관리자가 아니면 해당 경찰서이하부서만 보이도록
+			if(psCode != 100){
+				sql += " AND u.f_pscode = " + psCode;
+			}	
+			
+			pstmt = conn.prepareStatement(sql);			
+			pstmt.setString(1, "%" + search + "%");
+			rs = pstmt.executeQuery();
+			if(rs.next()){
+				result +=  rs.getInt(1);
+			}				
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("getReserveSmsSendAllListCount 에러 : " + e.getMessage());
+		}finally{
+			connClose();
+		}
+		return result;
+	}
+	
+	/**
+	 * LMS 예약 전체 전송 갯수 구하기
+	 * @param search
+	 * 		검색어
+	 * @param type
+	 * 		타입
+	 * @param psCode
+	 * 		경찰서 코드
+	 * @return
+	 * 		전송 총 갯수
+	 */
+	public int getReserveLmsSendAllListCount(String search, String type, int psCode) {
+		int result = 0;
+		try {
+			conn = dataSource.getConnection();
+			String sql = "SELECT count(s.REQDATE) FROM mms_msg s, user_info u " + 
+						" WHERE  u.f_index = s.etc2 AND" +
+						" file_cnt = 0 AND s.reqdate > now() AND ";
+			if(type.equalsIgnoreCase("from")){			// 보낸아이디로 검색
+				sql += "  s.etc1 like ? ";
+			}else if(type.equalsIgnoreCase("message")){		// 메세지로 검색
+				sql += " s.msg like ? ";
+			}else{												// 받는 전화번호로 검색
+				sql += " phone like ? ";
+				search = search.replace("-", "");		// 하이픈 제거						
+			}
+			
+			//  지방청 관리자가 아니면 해당 경찰서이하부서만 보이도록
+			if(psCode != 100){
+				sql += " AND u.f_pscode = " + psCode;
+			}
+			
+			pstmt = conn.prepareStatement(sql);			
+			pstmt.setString(1, "%" + search + "%");
+			rs = pstmt.executeQuery();
+			if(rs.next()){
+				result +=  rs.getInt(1);
+			}				
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("getReserveLmsSendAllListCount 에러 : " + e.getMessage());
+		}finally{
+			connClose();
+		}
+		return result;
+	}
+	
+	/**
+	 * MMS 예약 전체 전송 갯수 구하기
+	 * @param search
+	 * 		검색어
+	 * @param type
+	 * 		타입
+	 * @param psCode
+	 * 		경찰서 코드
+	 * @return
+	 * 		전송 총 갯수
+	 */
+	public int getReserveMmsSendAllListCount(String search, String type, int psCode) {
+		int result = 0;
+		try {
+			conn = dataSource.getConnection();
+			String sql = "SELECT count(s.REQDATE) FROM mms_msg s, user_info u " + 
+						" WHERE  u.f_index = s.etc2 AND " +
+						" file_cnt > 0 AND s.reqdate > now() AND ";
+			if(type.equalsIgnoreCase("from")){			// 받는 아이디 검색
+				sql += " etc1 like ? ";
+			}else if(type.equalsIgnoreCase("message")){		// 메세지로 검색
+				sql += "  msg like ? ";
+			}else{			// 받는 전화번호로 검색
+				sql += " s.phone like ? ";
+				search = search.replace("-", "");		// 하이픈 제거						
+			}
+			//  지방청 관리자가 아니면 해당 경찰서이하부서만 보이도록
+			if(psCode != 100){
+				sql += " AND u.f_pscode = " + psCode;
+			}	
+			pstmt = conn.prepareStatement(sql);			
+			pstmt.setString(1, "%" + search + "%");
+			rs = pstmt.executeQuery();
+			if(rs.next()){
+				result +=  rs.getInt(1);
+			}				
+			//}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("getReserveMmsSendAllListCount 에러 : " + e.getMessage());
+		}finally{
+			connClose();
+		}
+		return result;
+	}
+	
+	/**
+	 *	SMS 예약 전송 결과 내역 리스트
+	 * @param start
+	 * @param end
+	 * @param search
+	 * 		검색어
+	 * @param type
+	 * 		검색종류
+	 * @param psCode 
+	 * @return
+	 */
+	public List<LGSMSBean> getReserveSmsSendAllList(int start, int end, String search, String type, int psCode) {
+		
+		List<LGSMSBean> list = new ArrayList<LGSMSBean>();
+		LGSMSBean data = null;		
+		
+		try {
+			conn = dataSource.getConnection();
+			String sql = "SELECT * FROM sc_tran s, user_info u " + 
+					" WHERE  u.f_index = s.tr_etc2 AND" +
+					" s.tr_senddate > now() AND ";				
+			if(type.equalsIgnoreCase("from")){	// 보낸전화번호로 검색
+				sql += "  s.tr_callback like ? ";
+				search = search.replace("-", "");		// 하이픈 제거						
+			}else if(type.equalsIgnoreCase("message")){		// 메세지로 검색
+				sql += " s.tr_msg like ? ";
+			}else{			// 받는 전화번호로 검색
+				sql += " s.tr_phone like ? ";
+				search = search.replace("-", "");		// 하이픈 제거						
+			}
+			if(psCode != 100){
+				sql += " AND u.f_pscode = " + psCode;
+			}
+			//  지방청 관리자가 아니면 해당 경찰서이하부서만 보이도록
+			if(psCode != 100){
+				sql += " AND u.f_pscode = " + psCode;
+			}					
+			sql +=  " ORDER BY s.TR_SENDDATE DESC LIMIT ?, ? ";
+			
+			pstmt = conn.prepareStatement(sql);		
+			pstmt.setString(1, "%" + search + "%");	
+			pstmt.setInt(2, start -1);
+			pstmt.setInt(3, end);				
+			rs = pstmt.executeQuery();
+			while(rs.next())	{
+				// 문자 내역을 담는다.
+			    data = new LGSMSBean();	
+			    data.setIndex(rs.getLong("tr_num"));
+			    data.setUserId(rs.getString("tr_etc1"));
+			    data.setUserIndex(rs.getInt("tr_etc2"));
+			    data.setCallback(rs.getString("tr_callback"));		
+			    data.setPhone(rs.getString("tr_phone"));
+			    data.setMsg(rs.getString("tr_msg"));
+			    data.setRealsenddate(rs.getString("tr_realsenddate"));
+			    data.setSenddate(rs.getString("tr_senddate"));		
+			    data.setRsltstat(rs.getString("tr_rsltstat"));
+			    data.setMsgtype(rs.getString("tr_msgtype"));   
+				list.add(data);
+			}			
+		//	}
+		
+			return list;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("getSendList 에러 : " + e.getMessage());
+			return null;
+		}finally{
+			connClose();
+		}
+	}		
+	
+	/**
+	 * LMS예약	전체 발송 리스트
+	 * @param start
+	 * 		시작 번호
+	 * @param end
+	 * 		페이지 끝번호
+	 * @param search
+	 * 		검색어
+	 * @param type
+	 * 		검색종류
+	 * @param psCode
+	 * 		경찰서 코드
+	 * @return
+	 * 	LMS List
+	 */
+	public List<LGMMSBean> getReserveLmsSendAllList(int start, int end, String search, String type, int psCode) {
+		List<LGMMSBean> list = new ArrayList<LGMMSBean>();
+		LGMMSBean data = null;		
+		try {
+			conn = dataSource.getConnection();
+			String sql = "SELECT * FROM mms_msg s, user_info u " + 
+						" WHERE  u.f_index = s.etc2 AND" +
+						" file_cnt = 0 AND s.reqdate > now() AND ";				
+				if(type.equalsIgnoreCase("from")){	// 보낸전화번호로 검색
+					sql += "  s.etc1 like ? ";
+				}else if(type.equalsIgnoreCase("message")){		// 메세지로 검색
+					sql += " s.msg like ? ";
+				}else{			// 받는 전화번호로 검색
+					sql += " s.phone like ? ";
+					search = search.replace("-", "");		// 하이픈 제거						
+				}
+				
+				//  지방청 관리자가 아니면 해당 경찰서이하부서만 보이도록
+				if(psCode != 100){
+					sql += " AND u.f_pscode = " + psCode;
+				}					
+				sql +=  " ORDER BY s.REQDATE DESC LIMIT ?, ? ";
+				
+				pstmt = conn.prepareStatement(sql);		
+				pstmt.setString(1, "%" + search + "%");	
+				pstmt.setInt(2, start -1);
+				pstmt.setInt(3, end);				
+				rs = pstmt.executeQuery();
+				while(rs.next())	{
+					// mms 내역을 담는다.
+				    data = new LGMMSBean();	
+				    data.setIndex(rs.getLong("msgkey"));
+				    data.setUserId(rs.getString("etc1"));
+				    data.setUserIndex(rs.getInt("etc2"));
+				    data.setCallback(rs.getString("callback"));			    
+				    data.setPhone(rs.getString("phone"));
+				    data.setMsg(rs.getString("msg"));
+				    data.setSubject(rs.getString("subject"));
+				    data.setTelcoinfo(rs.getString("telcoinfo"));
+				    data.setRealsenddate(rs.getString("sentdate"));
+				    data.setSenddate(rs.getString("reqdate"));		
+				    data.setRsltstat(rs.getString("rslt"));
+				    data.setType(rs.getString("type"));   
+					list.add(data);
+				}			
+		//	}
+		
+			return list;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("getReserveLmsSendAllList 에러 : " + e.getMessage());
+			return null;
+		}finally{
+			connClose();
+		}
+	}
+
+	/**
+	 * MMS	예약 전체 발송 리스트
+	 * @param start
+	 * 		시작 번호
+	 * @param end
+	 * 		페이지 끝번호
+	 * @param search
+	 * 		검색어
+	 * @param type
+	 * 		검색종류
+	 * @param psCode
+	 * 		경찰서 코드
+	 * @return
+	 * 	MMS List
+	 */
+	public List<LGMMSBean> getReserveMmsSendAllList(int start, int end,
+			String search, String type, int psCode) {
+		List<LGMMSBean> list = new ArrayList<LGMMSBean>();
+		LGMMSBean data = null;		
+		try {
+			conn = dataSource.getConnection();
+			String sql = "SELECT * FROM mms_msg s, user_info u " + 
+					" WHERE  u.f_index = s.etc2 AND " +
+					" file_cnt > 0 AND s.reqdate > now() AND ";							
+			if(type.equalsIgnoreCase("from")){	// 보낸 아이디 검색
+				sql += "  s.etc1 like ? ";
+			}else if(type.equalsIgnoreCase("message")){		// 메세지로 검색
+				sql += " s.msg like ? ";
+			}else{			// 받는 전화번호로 검색
+				sql += " s.callback like ? ";
+				search = search.replace("-", "");		// 하이픈 제거					
+			}
+			
+			//  지방청 관리자가 아니면 해당 경찰서이하부서만 보이도록
+			if(psCode != 100){
+				sql += " AND u.f_pscode = " + psCode;
+			}					
+			sql +=  " ORDER BY s.REQDATE DESC LIMIT ?, ? ";
+			
+			pstmt = conn.prepareStatement(sql);		
+			pstmt.setString(1, "%" + search + "%");	
+			pstmt.setInt(2, start -1);
+			pstmt.setInt(3, end);				
+			rs = pstmt.executeQuery();
+			while(rs.next())	{
+				// mms 내역을 담는다.
+			    data = new LGMMSBean();	
+			    data.setIndex(rs.getLong("msgkey"));
+			    data.setUserId(rs.getString("etc1"));
+			    data.setUserIndex(rs.getInt("etc2"));
+			    data.setCallback(rs.getString("callback"));			    
+			    data.setPhone(rs.getString("phone"));
+			    data.setMsg(rs.getString("msg"));
+			    data.setSubject(rs.getString("subject"));
+			    data.setTelcoinfo(rs.getString("telcoinfo"));
+			    data.setRealsenddate(rs.getString("sentdate"));
+			    data.setSenddate(rs.getString("reqdate"));		
+			    data.setRsltstat(rs.getString("rslt"));
+			    data.setType(rs.getString("type"));   
+				list.add(data);
+			}			
+			//}
+			return list;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("getReserveMmsSendAllList 에러 : " + e.getMessage());
+			return null;
+		}finally{
+			connClose();
+		}
+	}
+
+	/**
+	 * 관리자모드에서 발송내역 삭제 (실제 삭제처리)
+	 * @param mode
+	 * 	전송모드
+	 * @param parseLong
+	 * 	발송인덱스
+	 */
+	public boolean realDelSendMessage(String mode, long index) {
+		int result = 0;
+		try {
+			conn = dataSource.getConnection();
+			String sql ="";
+			if(mode.equals("SMS")){	// SMS 모드이면
+				sql = "DELETE FROM sc_log WHERE tr_num = ? ";
+			}else{ 	// LMS, MMS 모드
+				sql = "DELETE FROM mms_log WHERE msgkey = ? ";
+			}
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setLong(1, index);						// 메세지 인덱스
+			// update
+			result = pstmt.executeUpdate();
+			return result > 0;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("realDelSendMessage 에러 : " + e.getMessage());
+			return false;
+		}finally{
+			connClose();
+		}
+	}
+
+	/**
+	 * 예약 내역 삭제
+	 * @param mode
+	 *		발송 모드
+	 * @param index
+	 * 		예약 인덱스
+	 * @return
+	 */
+	public boolean delReserveMessage(String mode, long index) {
+		int result = 0;
+		try {
+			conn = dataSource.getConnection();
+			String sql ="";
+			if(mode.equals("SMS")){	// SMS 모드이면
+				sql = "DELETE FROM sc_tran WHERE tr_num = ? ";
+			}else{ 	// LMS, MMS 모드
+				sql = "DELETE FROM mms_msg WHERE msgkey = ? ";
+			}
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setLong(1, index);						// 메세지 인덱스
+			// update
+			result = pstmt.executeUpdate();
+			return result > 0;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("delReserveMessage 에러 : " + e.getMessage());
+			return false;
+		}finally{
+			connClose();
+		}
+	}	
 }

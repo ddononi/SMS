@@ -37,17 +37,18 @@ public class SmsSendResultAction implements Action {
 			limit = Integer.valueOf(request.getParameter("limit"));
 		}
 		
-		// 전송결과에서는 전화번호만 검색처리
-		String flag = "SMS";
-		if(request.getParameter("search") != null){
-			flag = (String)request.getParameter("flag");		
+		// 전송 모드 ( sms, lms, mms )
+		String mode = "SMS";
+		if(request.getParameter("mode") != null){
+			mode = (String)request.getParameter("mode");		
 		}			
 		
 		// 검색어 
 		// 전송결과에서는 전화번호만 검색처리
 		String search = "";
 		if(request.getParameter("search") != null){
-			search = request.getParameter("search").trim();
+			search = request.getParameter("search");
+			search = new String(search.trim().getBytes("iso-8859-1"), "EUC-KR");			
 			search = search.replace("-", "");
 		}	
 		
@@ -61,13 +62,31 @@ public class SmsSendResultAction implements Action {
 		int userIndex = Integer.valueOf(session.getAttribute("index").toString());
 		
 		int start = (page -1 ) * limit +1;														// 시작 번호
-		int listSize = dao.getSendResultCount(userIndex, type, search);		// 내 발송 내역 갯수
+		// 전송 모드별 발송 갯수 얻기
+		int listSize = 0;
+		if(mode.equals("SMS")){	
+			listSize = dao.getUserSmsSentCount(userIndex, search, type);	
+		}else if(mode.equals("LMS")){	
+			listSize = dao.getUserLmsSentCount(userIndex, search, type);
+		}else{
+			listSize = dao.getUserMmsSentCount(userIndex, search, type);	
+		}	
+		
+		
 		//	리스트 번호
 		int no = listSize - (page - 1) * limit;		
 		// 페이지 네이션 처리
-		String params = "limit=" +limit + "&search=" + search;
-		String pagiNation = SMSUtil.makePagiNation(listSize, page, limit, "SmsSendResultAction.sm", params);  
-		ArrayList<LGSMSBean> list = (ArrayList<LGSMSBean>)dao.getSendResultList(userIndex, start, limit, type, search);
+		String params = "limit=" +limit + "&search=" + search +"&type="+type +"&mode="+mode;
+		String pagiNation = SMSUtil.makePagiNation(listSize, page, limit, "SmsSendResultAction.sm", params);
+		ArrayList<?> list = null;
+		if(mode.equals("SMS")){	
+			list = (ArrayList<LGSMSBean>)dao.getUserSmsSentList(userIndex, start, limit, search, type);
+		}else if(mode.equals("LMS")){	
+			list = (ArrayList<LGMMSBean>)dao.getUserLmsSentList(userIndex, start, limit, search, type);
+		}else{
+			list = (ArrayList<LGMMSBean>)dao.getUserMmsSentList(userIndex, start, limit, search, type);
+		}			
+		
 		// token 설정
 		String token = CommandToken.set(request);
 		request.setAttribute("token", token);	
@@ -78,7 +97,7 @@ public class SmsSendResultAction implements Action {
 		request.setAttribute("listSize", listSize);						// 총  주소록그룹 갯수
 		request.setAttribute("sendList", list);							// 발송 내역리스트
 		request.setAttribute("type", type);								// 검색타입		
-		request.setAttribute("flag", flag);									// 발송종류				
+		request.setAttribute("mode", mode);							// 발송종류				
 		request.setAttribute("pagiNation", pagiNation);				// 페이지네이션
 		forward.setPath("./WEB-INF/sms/send_result_list.jsp");
 

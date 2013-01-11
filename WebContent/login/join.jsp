@@ -25,7 +25,8 @@
 input, select {
 	margin-left: 10px;
 }
-#deptName, #psname, #level{width: 150px;}
+#deptName, #psname, #userClass{width: 150px;}
+#phone1, #phone2, #phone3{width: 70px;}
 </style>
 <script type="text/javascript">
 <!--
@@ -113,10 +114,12 @@ function() {
 				$imgs.children(":first").hide();
 				return;
 			} else {
+				/*
 				var $imgs = $("#id").parent(
 						'td').siblings().eq(1);
 				$imgs.children(":first").show();
 				$imgs.children(":last").hide();
+				*/
 			}
 
 			// 경찰서명 입력검증

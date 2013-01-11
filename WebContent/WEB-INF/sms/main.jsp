@@ -25,6 +25,7 @@
 #send_btn{ cursor: pointer;}
 .attach_file{display: inline; margin-right:40px;; float: right; }
 .attach_file * {display: none; cursor: pointer;}
+#my_phone_num{text-indent: 10px;}
 </style>
 <script type="text/javascript" src="./js/sms_page.js"></script>
 <script type="text/javascript" src="./js/timepicker.js"></script>
@@ -127,7 +128,7 @@
 					<h4 class="tab01">
 						<img src="././images/lettersend/tab01_off.gif" id="myMessageBox" alt="내문자" border="0" />
 						<div class="my01" style="left:0px;">
-							<iframe src="./MyMessageListAction.sm" width="700px"  height="450px"></iframe>						 						
+							<iframe frameBorder="0" src="./MyMessageListAction.sm" width="700px"  height="450px"></iframe>						 						
 						</div>
 					</h4>
 					<h4 class="tab02">
@@ -146,7 +147,11 @@
 	<p style="line-height: 22px; margin-bottom: 10px" >
 		첨부파일은 이미지 100Kb(jpg형식, 176 * 144 크기) 이내<br/>
 		동영상파일은 300Kb이내로 첨부해야 합니다.<br/>
+		(동영상 첨부시 반드시 skm 혹은 k3g형식 첨부)
+		<!-- 
+		동영상파일은 300Kb이내로 첨부해야 합니다.<br/>
 		(동영상 첨부시 반드시 skm, k3g형식 모두 첨부)
+		-->
 	</p>   
 	<form style="text-align: right;" id="send_frm"   action="./SmsSendAction.sm" method="post" enctype="multipart/form-data" >
 		<input value="" type="hidden" name="call_to_nums"  id="call_to_nums" />

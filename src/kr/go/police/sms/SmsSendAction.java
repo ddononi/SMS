@@ -3,12 +3,17 @@ package kr.go.police.sms;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.text.Collator;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import javax.servlet.ServletContext;
@@ -16,19 +21,23 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import com.oreilly.servlet.MultipartRequest;
-import com.oreilly.servlet.multipart.DefaultFileRenamePolicy;
+import org.apache.poi.hssf.record.ArrayRecord;
 
 import kr.go.police.IGwConstant;
 import kr.go.police.SMSUtil;
 import kr.go.police.action.Action;
 import kr.go.police.action.ActionForward;
 
+import com.oreilly.servlet.MultipartRequest;
+import com.oreilly.servlet.multipart.DefaultFileRenamePolicy;
+
 /**
  *	문자 발송 처리 action
  */
 public class SmsSendAction implements Action, IGwConstant{
 	private HttpServletResponse response;
+	private int addCount = 0;
+	private String flag;
 	@Override
 	public ActionForward execute(HttpServletRequest request,
 			HttpServletResponse response) throws Exception {
@@ -75,16 +84,18 @@ public class SmsSendAction implements Action, IGwConstant{
 			}
 			
 			// 동영상 첨부시 2개형식이(skm, k3g) 모두 들어가 있는지 체크
+			/*
 			if(!checkVideoFile(f1, f2, f3)){
 				invalidMessageShow("동영상 첨부시 2개형식이(skm, k3g) 반드시 포함되어야 합니다.");
 				return null;
 			}
+			*/
 			
 			String fromPhone = (String)multi.getParameter("my_phone_num");	// 내 전화번호
 			fromPhone = fromPhone.replace("-", "");
 			String message = (String)multi.getParameter("message");		// 발송 메세지
 			String callback = (String)session.getAttribute("phone");			// 콜백 전화번호
-			String flag = (String)multi.getParameter("flag");		// 전송 모드
+			flag = (String)multi.getParameter("flag");		// 전송 모드
 			reserved = multi.getParameter("reserved").toString().equals("true");	// 예약 여부	
 			String reservedDate =  (String)multi.getParameter("reserved_datetime");// 예약일
 			// 예약일이 없을경우 현재 시간으로 설정
@@ -115,6 +126,7 @@ public class SmsSendAction implements Action, IGwConstant{
 	    	ServletContext context = request.getServletContext();
 	    	String logPath = (String)context.getInitParameter("logFilesPath");		
 	    	String logMsg;
+	    	List<String> fileList = sortAttachFiles(file1, file2, file3);
 			while(it.hasNext()){
 				// 발송 정보 담기
 				data = new SMSBean();
@@ -124,9 +136,9 @@ public class SmsSendAction implements Action, IGwConstant{
 				data.setFromPhone(fromPhone);
 				data.setMessage(message);
 				data.setCallback(callback);
-				data.setFile1(file1);
-				data.setFile2(file2);
-				data.setFile3(file3);				
+				if(fileList.size() > 0) data.setFile1(fileList.get(0));
+				if(fileList.size() > 1) data.setFile2(fileList.get(1));
+				if(fileList.size() > 2) data.setFile3(fileList.get(2));
 				data.setFlag(flag);			
 				data.setId(id);
 				data.setCallback(callback);
@@ -142,9 +154,8 @@ public class SmsSendAction implements Action, IGwConstant{
 				SMSUtil.writerToLogFile(logPath, logMsg);
 				list.add(data);
 			}
-			
 			// 발송 대기 추가 갯수 얻기
-			int addCount = dao.addSmsSendList(list);
+			addCount = dao.addSendList(list);
 
 		}catch(Exception e){			// 오류 발생시
 			System.out.println(e.getMessage());			
@@ -158,17 +169,41 @@ public class SmsSendAction implements Action, IGwConstant{
 			return null;
 		}
 		
-		forward.setRedirect(true);
+		//forward.setRedirect(true);
+		/*
 		// 예약 발송이면 예약화면으로		
 		if(reserved){
 			forward.setPath("./ReservedListAction.sm");
 		}else{		//	전송 결과 화면으로
 			forward.setPath("./SmsSendResultAction.sm");
 		}
-		return forward;			
+		*/
+
+		response.setContentType("text/html;charset=euc-kr");
+		PrintWriter out = response.getWriter();
+		out.println("<script>");
+		out.println("alert('" + addCount + "건의  문자 메세지를 발송하였습니다.');");
+		out.println("window.location.replace('" +
+				"./SmsSendViewAction.sm');");
+		out.println("</script>");	
+		out.close();
+		return null;			
 
 	}
-
+	/**
+	 *	첨부 파일을 첫번째부터 채워주기
+	 * @param file1
+	 * @param file2
+	 * @param file3
+	 */
+	private List<String> sortAttachFiles(String file1, String file2, String file3) {
+		List<String> list = new ArrayList<String>(Arrays.asList(file1, file2, file3));
+		// 공백 및 null 파일명을 제거
+		list.removeAll(Arrays.asList("", null));
+		System.out.println(list);		
+		return list;
+	}
+	
 	/**
 	 *  MMS에 허용되는 파일 및 크기 체크
 	 * @param file
