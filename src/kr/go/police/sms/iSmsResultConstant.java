@@ -74,4 +74,5 @@ public interface iSmsResultConstant {
 	public final static int MMS_E_DUP_MSG = 9009;						//	설정시간이내 중복
 	public final static int MMS_E_EXCEED_RETRY = 9010;				// 재전송 횟수 초과로 실패
 	public final static int MMS_E_OLD_REQ = 9011;						//	발송지연으로 인한 실패
+	
 }

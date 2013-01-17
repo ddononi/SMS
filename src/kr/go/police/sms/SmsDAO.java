@@ -579,6 +579,7 @@ public class SmsDAO extends CommonCon {
 		try {
 			conn = dataSource.getConnection();
 			String sql;
+			String title = "";
 			for(SMSBean data : list){
 				/*
 				sql = "INSERT INTO sms_send_info ( f_index, f_user_id, f_user_index, f_callto, f_callfrom, f_message, " +
@@ -596,7 +597,17 @@ public class SmsDAO extends CommonCon {
 							"etc3, file_path1, file_path2, file_path3, file_cnt) " +
 							" VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ";
 					pstmt = conn.prepareStatement(sql);
-					pstmt.setString(1, "");								//	제목							
+					try{
+							// 제목이 10글자 이상일경우
+						 if(data.getMessage().length() > 10){
+							 title = data.getMessage().substring(0, 10);
+						 }else{
+							 title = data.getMessage();
+						 }
+					}catch(Exception e){ 
+						title = "";
+					}
+					pstmt.setString(1,  title);							//	제목					
 					pstmt.setString(2, data.getSendDate());		// 발송시간					
 					pstmt.setString(3, data.getId());					// 유저 아이디
 					pstmt.setString(4, ""+data.getUserIndex());	// 유저  인덱스				
@@ -2931,4 +2942,587 @@ public class SmsDAO extends CommonCon {
 			connClose();
 		}
 	}	
+	
+	
+	/**
+	 * 가장 오래된 발송일 구하기
+	 * @param type
+	 * 	전송타입
+	 * @return
+	 */
+	public String Mindate(String type) {
+		String date = "";
+		String sql = "";
+		if(type.equalsIgnoreCase("SMS")){
+			 sql = "select min(TR_SENDDATE) as mindate from sc_log where TR_SENDSTAT=2";
+		}else if(type.equalsIgnoreCase("MMS")){
+			 sql = "select min(REQDATE) as mindate from mms_log where STATUS=3 AND FILE_CNT!=0";
+		}else {
+			 sql = "select min(REQDATE) as mindate from mms_log where STATUS=3 AND FILE_CNT=0";
+		}
+		try {
+			conn = dataSource.getConnection();						
+			pstmt = conn.prepareStatement(sql);			
+			rs = pstmt.executeQuery();
+			if(rs.next()){
+				date =  rs.getString("mindate");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("Mindate 에러 : " + e.getMessage());
+		}finally{
+			connClose();
+		}
+		return date;
+	}
+	
+	/**
+	 * 가장 최근 발송일 구하지
+	 * @param type
+	 * 	전송타입
+	 * @return
+	 */
+	public String Maxdate(String type) {
+		String date = "";
+		String sql = "";
+		if(type.equalsIgnoreCase("SMS")){
+			 sql = "select max(TR_SENDDATE) as maxdate from sc_log where TR_SENDSTAT=2";
+		}else if(type.equalsIgnoreCase("MMS")){
+			 sql = "select max(REQDATE) as maxdate from mms_log where STATUS=3 AND FILE_CNT!=0";
+		}else {
+			 sql = "select max(REQDATE) as maxdate from mms_log where STATUS=3 AND FILE_CNT=0";
+		}
+		try {
+			conn = dataSource.getConnection();						
+			pstmt = conn.prepareStatement(sql);			
+			rs = pstmt.executeQuery();
+			if(rs.next()){
+				date =  rs.getString("maxdate");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("Maxdate 에러 : " + e.getMessage());
+		}finally{
+			connClose();
+		}
+		return date;
+	}
+	
+
+	/**
+	 * 경찰서별 월 발송 횟수 조회
+	 * @param userIndex
+	 * 	유저 인덱스
+	 * @return
+	 */
+	public List<Statistics> getPsStatisticsList(String date, String type) {
+		List<Statistics> list = new ArrayList<Statistics>();
+		Statistics data = null;
+		int a_jan = 0, a_feb = 0, a_mar =0, a_apr = 0, a_may = 0, a_jun=0, a_jul=0, a_aug=0, a_sep=0, a_oct=0, a_nov=0, a_dec=0;
+		String sql = "SELECT  A.f_psname, A.f_pscode, A.f_deptcode,";
+		if(type.equalsIgnoreCase("SMS")){
+			for(int i=1;i<=11;i++){
+					sql+="sum(case when B.TR_SENDDATE between '"+date+"-"+i+"-01'  and '"+date+"-"+i+"-31' then 1 else 0 end) as "+i+"m,";
+				}
+			sql+="sum(case when B.TR_SENDDATE between '"+date+"-12-01'  and '"+date+"-12-31' then 1 else 0 end) as 12m";
+			sql+=" FROM user_info A LEFT outer JOIN (SELECT * from sc_log where TR_SENDSTAT=2) B ON A.f_index = B.TR_ETC2 ";
+			sql+="group BY A.f_psname order by count(A.f_psname) desc";		
+		}else if(type.equalsIgnoreCase("MMS")){
+			for(int i=1;i<=11;i++){
+				sql+="sum(case when B.REQDATE between '"+date+"-"+i+"-01'  and '"+date+"-"+i+"-31' then 1 else 0 end) as "+i+"m,";
+			}
+				sql+="sum(case when B.REQDATE between '"+date+"-12-01'  and '"+date+"-12-31' then 1 else 0 end) as 12m";
+				sql+=" FROM user_info A LEFT outer JOIN (SELECT * from mms_log where STATUS=3 AND FILE_CNT!=0) B ON A.f_index = B.ETC2 ";
+				sql+="group BY A.f_psname order by count(A.f_psname) desc";	
+		}else {
+			for(int i=1;i<=11;i++){
+				sql+="sum(case when B.REQDATE between '"+date+"-"+i+"-01'  and '"+date+"-"+i+"-31' then 1 else 0 end) as "+i+"m,";
+			}
+				sql+="sum(case when B.REQDATE between '"+date+"-12-01'  and '"+date+"-12-31' then 1 else 0 end) as 12m";
+				sql+=" FROM user_info A LEFT outer JOIN (SELECT * from mms_log where STATUS=3 AND FILE_CNT=0) B ON A.f_index = B.ETC2 ";
+				sql+="group BY A.f_psname order by count(A.f_psname) desc";	
+		}		
+		
+		try {
+			conn = dataSource.getConnection();
+			pstmt = conn.prepareStatement(sql);
+			rs = pstmt.executeQuery();
+			while(rs.next()){
+				// 문자함 그룹
+			    data = new Statistics();	
+			    data.setName(rs.getString("f_psname"));
+			    data.setJan(rs.getInt("1m"));
+			    a_jan += rs.getInt("1m");
+			    data.setFeb(rs.getInt("2m"));
+			    a_feb += rs.getInt("2m");
+			    data.setMar(rs.getInt("3m"));
+			    a_mar += rs.getInt("3m");
+			    data.setApr(rs.getInt("4m"));
+			    a_apr += rs.getInt("4m");
+			    data.setMay(rs.getInt("5m"));
+			    a_may += rs.getInt("5m");
+			    data.setJun(rs.getInt("6m"));
+			    a_jun += rs.getInt("6m");
+			    data.setJul(rs.getInt("7m"));
+			    a_jul += rs.getInt("7m");
+			    data.setAug(rs.getInt("8m"));
+			    a_aug += rs.getInt("8m");
+			    data.setSep(rs.getInt("9m"));
+			    a_sep += rs.getInt("9m");
+			    data.setOct(rs.getInt("10m"));
+			    a_oct += rs.getInt("10m");
+			    data.setNov(rs.getInt("11m"));
+			    a_nov += rs.getInt("11m");
+			    data.setDec(rs.getInt("12m"));
+			    a_dec += rs.getInt("12m");
+			    data.setPscode(rs.getInt("f_pscode"));
+			    data.setDeptcode(rs.getInt("f_deptcode"));
+				list.add(data);
+  			}
+			
+			data = new Statistics();	
+			data.setName("합계");
+			data.setId("");
+		    data.setJan(a_jan);
+		    data.setFeb(a_feb);
+		    data.setMar(a_mar);
+		    data.setApr(a_apr);
+		    data.setMay(a_may);
+		    data.setJun(a_jun);
+		    data.setJul(a_jul);
+		    data.setAug(a_aug);
+		    data.setSep(a_sep);
+		    data.setOct(a_oct);
+		    data.setNov(a_nov);
+		    data.setDec(a_dec);		    
+		    list.add(data);
+		    
+			return list;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("getPsStatisticsList 에러 : " + e.getMessage());
+			return null;
+		}finally{
+			connClose();
+		}
+	}
+	
+	/**
+	 * 부서별 월 발송 횟수 조회
+	 * @param userIndex
+	 * 	유저 인덱스
+	 * @return
+	 */
+	public List<Statistics> getDeptStatisticsList(String date, String type, int pscode) {
+		List<Statistics> list = new ArrayList<Statistics>();
+		Statistics data = null;
+		String sql = "SELECT  A.f_deptname,  A.f_deptcode,";
+		if(type.equalsIgnoreCase("SMS")){
+			for(int i=1;i<=11;i++){
+					sql+="sum(case when B.TR_SENDDATE between '"+date+"-"+i+"-01'  and '"+date+"-"+i+"-31' then 1 else 0 end) as "+i+"m,";
+				}
+			sql+="sum(case when B.TR_SENDDATE between '"+date+"-12-01'  and '"+date+"-12-31' then 1 else 0 end) as 12m";
+			sql+=" FROM ( SELECT * from user_info where f_pscode="+pscode+") A LEFT outer JOIN (SELECT * from sc_log where TR_SENDSTAT=2) B ON A.f_index = B.TR_ETC2 ";
+			sql+="group BY A.f_deptname order by count(A.f_deptname) desc";		
+		}else if(type.equalsIgnoreCase("MMS")){
+			for(int i=1;i<=11;i++){
+				sql+="sum(case when B.REQDATE between '"+date+"-"+i+"-01'  and '"+date+"-"+i+"-31' then 1 else 0 end) as "+i+"m,";
+			}
+				sql+="sum(case when B.REQDATE between '"+date+"-12-01'  and '"+date+"-12-31' then 1 else 0 end) as 12m";
+				sql+=" FROM ( SELECT * from user_info where f_pscode="+pscode+") A LEFT outer JOIN (SELECT * from mms_log where STATUS=3 AND FILE_CNT!=0) B ON A.f_index = B.ETC2 ";
+				sql+="group BY A.f_deptname order by count(A.f_deptname) desc";	
+		}else {
+			for(int i=1;i<=11;i++){
+				sql+="sum(case when B.REQDATE between '"+date+"-"+i+"-01'  and '"+date+"-"+i+"-31' then 1 else 0 end) as "+i+"m,";
+			}
+				sql+="sum(case when B.REQDATE between '"+date+"-12-01'  and '"+date+"-12-31' then 1 else 0 end) as 12m";
+				sql+=" FROM ( SELECT * from user_info where f_pscode="+pscode+") A LEFT outer JOIN (SELECT * from mms_log where STATUS=3 AND FILE_CNT=0) B ON A.f_index = B.ETC2 ";
+				sql+="group BY A.f_deptname order by count(A.f_deptname) desc";	
+		}
+		try {
+			conn = dataSource.getConnection();
+			pstmt = conn.prepareStatement(sql);
+			rs = pstmt.executeQuery();
+			while(rs.next()){
+				// 문자함 그룹
+			    data = new Statistics();	
+			    data.setName(rs.getString("f_deptname"));
+			    data.setJan(rs.getInt("1m"));
+			    data.setFeb(rs.getInt("2m"));
+			    data.setMar(rs.getInt("3m"));
+			    data.setApr(rs.getInt("4m"));
+			    data.setMay(rs.getInt("5m"));
+			    data.setJun(rs.getInt("6m"));
+			    data.setJul(rs.getInt("7m"));
+			    data.setAug(rs.getInt("8m"));
+			    data.setSep(rs.getInt("9m"));
+			    data.setOct(rs.getInt("10m"));
+			    data.setNov(rs.getInt("11m"));
+			    data.setDec(rs.getInt("12m"));
+			    data.setDeptcode(rs.getInt("f_deptcode"));
+				list.add(data);
+  			}
+			return list;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("getDeptStatisticsList 에러 : " + e.getMessage());
+			return null;
+		}finally{
+			connClose();
+		}
+	}
+	
+	/**
+	 * 유저 월 발송 횟수 조회
+	 * @param userIndex
+	 *  @param date
+	 * 	유저 인덱스
+	 * @return
+	 */
+	public List<Statistics> getUserStatisticsList(String date, String type, int deptcode, int start, int end, String search, String s_type) {
+		List<Statistics> list = new ArrayList<Statistics>();
+		Statistics data = null;
+		start -= 1;
+		Aria aria = Aria.getInstance();	
+		
+		String sql = "SELECT  A.f_name, A.f_id, ";
+		if(type.equalsIgnoreCase("SMS")){			
+					sql+="sum(case when B.TR_SENDDATE between '"+date+"-01-01'  and '"+date+"-01-31' then 1 else 0 end) as 1m,"+
+							"sum(case when B.TR_SENDDATE between '"+date+"-02-01'  and '"+date+"-02-31' then 1 else 0 end) as 2m,"+
+							"sum(case when B.TR_SENDDATE between '"+date+"-03-01'  and '"+date+"-03-31' then 1 else 0 end) as 3m,"+
+							"sum(case when B.TR_SENDDATE between '"+date+"-04-01'  and '"+date+"-04-31' then 1 else 0 end) as 4m,"+
+							"sum(case when B.TR_SENDDATE between '"+date+"-05-01'  and '"+date+"-05-31' then 1 else 0 end) as 5m,"+
+							"sum(case when B.TR_SENDDATE between '"+date+"-06-01'  and '"+date+"-06-31' then 1 else 0 end) as 6m,"+
+							"sum(case when B.TR_SENDDATE between '"+date+"-07-01'  and '"+date+"-07-31' then 1 else 0 end) as 7m,"+
+							"sum(case when B.TR_SENDDATE between '"+date+"-08-01'  and '"+date+"-08-31' then 1 else 0 end) as 8m,"+
+							"sum(case when B.TR_SENDDATE between '"+date+"-09-01'  and '"+date+"-09-31' then 1 else 0 end) as 9m,"+
+							"sum(case when B.TR_SENDDATE between '"+date+"-10-01'  and '"+date+"-10-31' then 1 else 0 end) as 10m,"+
+							"sum(case when B.TR_SENDDATE between '"+date+"-11-01'  and '"+date+"-11-31' then 1 else 0 end) as 11m,"+			
+							"sum(case when B.TR_SENDDATE between '"+date+"-12-01'  and '"+date+"-12-31' then 1 else 0 end) as 12m"+
+							" FROM ( SELECT * from user_info where f_deptcode="+deptcode+" AND ";
+					if(s_type.equalsIgnoreCase("id")){	// ID로 검색
+						sql += "  f_id like ? ";
+					}else {																// 이름으로 검색
+						sql += " f_name like ? ";
+						search=aria.encryptByte2HexStr(search);	
+					}
+					sql+=") A LEFT outer JOIN (SELECT * from sc_log where TR_SENDSTAT=2) B ON A.f_index = B.TR_ETC2 "+
+							"group BY A.f_name, A.f_index order by count(A.f_name) desc LIMIT "+start+", "+end;		
+		}else if(type.equalsIgnoreCase("MMS")){		
+				sql+="sum(case when B.REQDATE between '"+date+"-01-01'  and '"+date+"-01-31' then 1 else 0 end) as 1m,"+
+						"sum(case when B.REQDATE between '"+date+"-02-01'  and '"+date+"-02-31' then 1 else 0 end) as 2m,"+
+						"sum(case when B.REQDATE between '"+date+"-03-01'  and '"+date+"-03-31' then 1 else 0 end) as 3m,"+
+						"sum(case when B.REQDATE between '"+date+"-04-01'  and '"+date+"-04-31' then 1 else 0 end) as 4m,"+
+						"sum(case when B.REQDATE between '"+date+"-05-01'  and '"+date+"-05-31' then 1 else 0 end) as 5m,"+
+						"sum(case when B.REQDATE between '"+date+"-06-01'  and '"+date+"-06-31' then 1 else 0 end) as 6m,"+
+						"sum(case when B.REQDATE between '"+date+"-07-01'  and '"+date+"-07-31' then 1 else 0 end) as 7m,"+
+						"sum(case when B.REQDATE between '"+date+"-08-01'  and '"+date+"-08-31' then 1 else 0 end) as 8m,"+
+						"sum(case when B.REQDATE between '"+date+"-09-01'  and '"+date+"-09-31' then 1 else 0 end) as 9m,"+
+						"sum(case when B.REQDATE between '"+date+"-10-01'  and '"+date+"-10-31' then 1 else 0 end) as 10m,"+
+						"sum(case when B.REQDATE between '"+date+"-11-01'  and '"+date+"-11-31' then 1 else 0 end) as 11m,"+
+						"sum(case when B.REQDATE between '"+date+"-12-01'  and '"+date+"-12-31' then 1 else 0 end) as 12m"+
+						" FROM ( SELECT * from user_info where f_deptcode="+deptcode+" AND ";
+				if(s_type.equalsIgnoreCase("from")){	// ID로 검색
+					sql += "  f_id like ? ";
+				}else {																// 이름으로 검색
+					sql += " f_name like ? ";
+					search=aria.encryptByte2HexStr(search);	
+				}
+				sql+=		") A LEFT outer JOIN (SELECT * from mms_log where STATUS=3 AND FILE_CNT!=0) B ON A.f_index = B.ETC2 "+
+						"group BY A.f_name, A.f_index order by count(A.f_name) desc LIMIT "+start+", "+end;	
+		}else{
+			
+				sql+="sum(case when B.REQDATE between '"+date+"-01-01'  and '"+date+"-01-31' then 1 else 0 end) as 1m,"+
+						"sum(case when B.REQDATE between '"+date+"-02-01'  and '"+date+"-02-31' then 1 else 0 end) as 2m,"+
+						"sum(case when B.REQDATE between '"+date+"-03-01'  and '"+date+"-03-31' then 1 else 0 end) as 3m,"+
+						"sum(case when B.REQDATE between '"+date+"-04-01'  and '"+date+"-04-31' then 1 else 0 end) as 4m,"+
+						"sum(case when B.REQDATE between '"+date+"-05-01'  and '"+date+"-05-31' then 1 else 0 end) as 5m,"+
+						"sum(case when B.REQDATE between '"+date+"-06-01'  and '"+date+"-06-31' then 1 else 0 end) as 6m,"+
+						"sum(case when B.REQDATE between '"+date+"-07-01'  and '"+date+"-07-31' then 1 else 0 end) as 7m,"+
+						"sum(case when B.REQDATE between '"+date+"-08-01'  and '"+date+"-08-31' then 1 else 0 end) as 8m,"+
+						"sum(case when B.REQDATE between '"+date+"-09-01'  and '"+date+"-09-31' then 1 else 0 end) as 9m,"+
+						"sum(case when B.REQDATE between '"+date+"-10-01'  and '"+date+"-10-31' then 1 else 0 end) as 10m,"+
+						"sum(case when B.REQDATE between '"+date+"-11-01'  and '"+date+"-11-31' then 1 else 0 end) as 11m,"+
+						"sum(case when B.REQDATE between '"+date+"-12-01'  and '"+date+"-12-31' then 1 else 0 end) as 12m"+
+						" FROM ( SELECT * from user_info where f_deptcode="+deptcode+" AND ";
+						if(s_type.equalsIgnoreCase("from")){	// ID로 검색
+							sql += "  f_id like ? ";
+						}else {																// 이름으로 검색
+							sql += " f_name like ? ";
+							search=aria.encryptByte2HexStr(search);	
+						}
+						sql+=") A  LEFT outer JOIN (SELECT * from mms_log where STATUS=3 AND FILE_CNT=0) B ON A.f_index = B.ETC2 "+
+						"group BY A.f_name, A.f_index order by count(A.f_name) desc LIMIT "+start+", "+end;	
+		}		
+		try {
+			conn = dataSource.getConnection();
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, "%" + search + "%");	
+			rs = pstmt.executeQuery();
+			while(rs.next()){
+				// 문자함 그룹
+			    data = new Statistics();	
+			    data.setName(aria.encryptHexStr2DecryptStr(rs.getString("f_name")));
+			    data.setId(rs.getString("f_id"));
+			    data.setJan(rs.getInt("1m"));
+			    data.setFeb(rs.getInt("2m"));
+			    data.setMar(rs.getInt("3m"));
+			    data.setApr(rs.getInt("4m"));
+			    data.setMay(rs.getInt("5m"));
+			    data.setJun(rs.getInt("6m"));
+			    data.setJul(rs.getInt("7m"));
+			    data.setAug(rs.getInt("8m"));
+			    data.setSep(rs.getInt("9m"));
+			    data.setOct(rs.getInt("10m"));
+			    data.setNov(rs.getInt("11m"));
+			    data.setDec(rs.getInt("12m"));			    
+			    list.add(data);			   
+  			}			
+		    
+			return list;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("getUserStatisticsList 에러 : " + e.getMessage());
+			return null;
+		}finally{
+			connClose();
+		}
+	}
+	
+	/**
+	 * 부서 사용자 수 
+	 * @param 
+	 * 		전송타입
+	 * @param search 
+	 * 		검색어
+	 * @return
+	 */
+	public int getDeptUserCount(int deptcode, String search, String s_type) {		
+		int result = 0;
+		Aria aria = Aria.getInstance();	
+		
+		String sql = "SELECT count(*) FROM user_info where f_deptcode = ? AND ";
+		if(s_type.equalsIgnoreCase("id")){	// ID로 검색
+			sql += "  f_id like ? ";
+		}else {																// 이름으로 검색
+			sql += " f_name like ? ";
+			search=aria.encryptByte2HexStr(search);	
+		}
+		
+		try {		
+			conn = dataSource.getConnection();
+			pstmt = conn.prepareStatement(sql);		
+			pstmt.setInt(1, deptcode);
+			pstmt.setString(2, "%" + search + "%");	
+			rs = pstmt.executeQuery();
+			if(rs.next()){
+				result =  rs.getInt(1);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("getDeptUserCount 에러 : " + e.getMessage());
+		}finally{
+			connClose();
+		}
+		return result;
+	}	
+	
+	/**
+	 * 통계 기간별 검색
+	 * @param userIndex
+	 * 	유저 인덱스
+	 * @return
+	 */
+	public List<Statistics> getStatisticsSearch(String s_date, String c_date, String type, int start, int end) {
+		List<Statistics> list = new ArrayList<Statistics>();
+		Statistics data = null;
+		Aria aria = Aria.getInstance();	
+		String sql = "SELECT   A.f_psname, A.f_pscode, A.f_deptname, A.f_deptcode, A.f_id, A.f_name, A.f_index, ";
+		if(type.equalsIgnoreCase("SMS")){			
+			sql+="sum(case when B.TR_SENDDATE between '"+s_date+"'  and '"+c_date+"' then 1 else 0 end) as d_count";
+			sql+=" FROM user_info A LEFT outer JOIN (SELECT * from sc_log where TR_SENDSTAT=2) B ON A.f_index = B.TR_ETC2 ";
+			sql+=" group by A.f_index order by d_count desc ";		
+		}else if(type.equalsIgnoreCase("MMS")){			
+				sql+="sum(case when B.REQDATE between '"+s_date+"'  and '"+c_date+"' then 1 else 0 end) as d_count";
+				sql+=" FROM user_info A LEFT outer JOIN (SELECT * from mms_log where STATUS=3 AND FILE_CNT!=0) B ON A.f_index = B.ETC2 ";
+				sql+=" group by A.f_index order by d_count desc";		
+		}else {		
+				sql+="sum(case when B.REQDATE between '"+s_date+"'  and '"+c_date+"' then 1 else 0 end) as d_count";
+				sql+=" FROM user_info A LEFT outer JOIN (SELECT * from mms_log where STATUS=3 AND FILE_CNT=0) B ON A.f_index = B.ETC2 ";
+				sql+=" group by A.f_index order by d_count desc";	
+		}
+		try {
+			conn = dataSource.getConnection();
+			pstmt = conn.prepareStatement(sql);
+			rs = pstmt.executeQuery();
+			while(rs.next()){
+				// 문자함 그룹
+			    data = new Statistics();	
+			    data.setIndex(rs.getInt("f_index"));																							//	인덱스
+			    data.setJan(rs.getInt("d_count"));			  																					//	발송횟수
+			    data.setDeptname(rs.getString("f_deptname"));																	//	부서이름
+			    data.setDeptcode(rs.getInt("f_deptcode"));																			//	부서코드
+			    data.setPsname(rs.getString("f_psname"));																			//	경찰서이름
+			    data.setPscode(rs.getInt("f_pscode"));																					// 경찰서 코드
+			    data.setId(rs.getString("f_id"));																									// ID
+			    data.setName(aria.encryptHexStr2DecryptStr(rs.getString("f_name")));						// 이름
+			    if(data.getJan()>0){
+			    list.add(data);
+			    }
+  			}
+			return list;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("getStatisticsSearch 에러 : " + e.getMessage());
+			return null;
+		}finally{
+			connClose();
+		}
+	}
+	
+	/**
+	 * 기간별 사용자 수 
+	 * @param 
+	 * 		전송타입
+	 * @param search 
+	 * 		검색어
+	 * @return
+	 */
+	public int getStatisticsSearchCount(String s_date, String c_date, String type) {		
+		int result = 0;
+		Aria aria = Aria.getInstance();	
+		
+		String sql = "SELECT (*) from ";
+		if(type.equalsIgnoreCase("SMS")){	// ID로 검색
+			sql += " sc_log where TR_SENDSTAT=2 AND TR_SENDDATE between ? and ? ";
+		}else if(type.equalsIgnoreCase("MMS")) {																// 이름으로 검색
+			sql += " mms_log where STATUS=3 AND FILE_CNT!=0 AND REQDATE between ? and ?";			
+		}else{
+			sql += " mms_log where STATUS=3 AND FILE_CNT=0 AND REQDATE between ? and ?";
+		}
+		
+		try {		
+			conn = dataSource.getConnection();
+			pstmt = conn.prepareStatement(sql);		
+			pstmt.setString(1, "'" + s_date + "'");
+			pstmt.setString(2, "'" + c_date + "'");	
+			rs = pstmt.executeQuery();
+			if(rs.next()){
+				result =  rs.getInt(1);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("getDeptUserCount 에러 : " + e.getMessage());
+		}finally{
+			connClose();
+		}
+		return result;
+	}
+	
+	
+	/**
+	 * 해당 경찰서 월 전송 갯수 구하기
+	 * @param type
+	 * 	전송타입
+	 * @return
+	 */
+	public String PsStatisticsCount(String type, int pscode, String year, int month, int day) {
+		String count = "";
+		String sql = "SELECT ";
+		if(type.equalsIgnoreCase("SMS")){			
+			sql+="sum(case when B.TR_SENDDATE  between '"+year+"-"+month+"-"+day+" 00:00:00' and '"+year+"-"+month+"-"+(day+1)+" 00:00:00' then 1 else 0 end) as d_count ";
+			sql+=" FROM ( SELECT * from user_info where f_pscode="+pscode+") A LEFT outer JOIN (SELECT * from sc_log where TR_SENDSTAT=2) B ON A.f_index = B.TR_ETC2 ";
+		}else if(type.equalsIgnoreCase("MMS")){			
+				sql+=" sum(case when B.REQDATE  between '"+year+"-"+month+"-"+day+" 00:00:00' and '"+year+"-"+month+"-"+(day+1)+" 00:00:00' then 1 else 0 end) as d_count ";
+				sql+=" FROM ( SELECT * from user_info where f_pscode="+pscode+") A LEFT outer JOIN (SELECT * from mms_log where STATUS=3 AND FILE_CNT!=0) B ON A.f_index = B.ETC2 ";
+		}else {		
+				sql+="sum(case when B.REQDATE  between '"+year+"-"+month+"-"+day+" 00:00:00' and '"+year+"-"+month+"-"+(day+1)+" 00:00:00' then 1 else 0 end) as d_count ";
+				sql+=" FROM ( SELECT * from user_info where f_pscode="+pscode+") A LEFT outer JOIN (SELECT * from mms_log where STATUS=3 AND FILE_CNT=0) B ON A.f_index = B.ETC2 ";
+		}
+		try {
+			conn = dataSource.getConnection();						
+			pstmt = conn.prepareStatement(sql);			
+			rs = pstmt.executeQuery();
+			if(rs.next()){
+				count =  rs.getString("d_count");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("PsStatisticsCount 에러 : " + e.getMessage());
+		}finally{
+			connClose();
+		}
+		return count;
+	}
+	
+	/**
+	 * 해당 부서 월 전송 갯수 구하기
+	 * @param type
+	 * 	전송타입
+	 * @return
+	 */
+	public String DeptStatisticsCount(String type, int deptcode, String year, int month, int day) {
+		String count = "";
+		String sql = "SELECT ";
+		if(type.equalsIgnoreCase("SMS")){			
+			sql+="sum(case when B.TR_SENDDATE  between '"+year+"-"+month+"-"+day+" 00:00:00' and '"+year+"-"+month+"-"+(day+1)+" 00:00:00' then 1 else 0 end) as d_count ";
+			sql+=" FROM ( SELECT * from user_info where f_deptcode="+deptcode+") A LEFT outer JOIN (SELECT * from sc_log where TR_SENDSTAT=2) B ON A.f_index = B.TR_ETC2 ";
+		}else if(type.equalsIgnoreCase("MMS")){			
+				sql+=" sum(case when B.REQDATE  between '"+year+"-"+month+"-"+day+" 00:00:00' and '"+year+"-"+month+"-"+(day+1)+" 00:00:00' then 1 else 0 end) as d_count ";
+				sql+=" FROM ( SELECT * from user_info where f_deptcode="+deptcode+") A LEFT outer JOIN (SELECT * from mms_log where STATUS=3 AND FILE_CNT!=0) B ON A.f_index = B.ETC2 ";
+		}else {		
+				sql+="sum(case when B.REQDATE  between '"+year+"-"+month+"-"+day+" 00:00:00' and '"+year+"-"+month+"-"+(day+1)+" 00:00:00' then 1 else 0 end) as d_count ";
+				sql+=" FROM ( SELECT * from user_info where f_deptcode="+deptcode+") A LEFT outer JOIN (SELECT * from mms_log where STATUS=3 AND FILE_CNT=0) B ON A.f_index = B.ETC2 ";
+		}
+		try {
+			conn = dataSource.getConnection();						
+			pstmt = conn.prepareStatement(sql);			
+			rs = pstmt.executeQuery();
+			if(rs.next()){
+				count =  rs.getString("d_count");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("DeptStatisticsCount 에러 : " + e.getMessage());
+		}finally{
+			connClose();
+		}
+		return count;
+	}
+	
+	/**
+	 * 해당 유저 월 전송 갯수 구하기
+	 * @param type
+	 * 	전송타입
+	 * @return
+	 */
+	public String UserStatisticsCount(String type, String UserId, String year, int month, int day) {
+		String count = "";
+		String sql = "SELECT ";
+		if(type.equalsIgnoreCase("SMS")){			
+			sql+="sum(case when B.TR_SENDDATE  between '"+year+"-"+month+"-"+day+" 00:00:00' and '"+year+"-"+month+"-"+(day+1)+" 00:00:00' then 1 else 0 end) as d_count ";
+			sql+=" FROM ( SELECT * from user_info WHERE f_id = '"+ UserId +"' ) A LEFT outer JOIN (SELECT * from sc_log where TR_SENDSTAT=2) B ON A.f_index = B.TR_ETC2 ";
+		}else if(type.equalsIgnoreCase("MMS")){			
+				sql+=" sum(case when B.REQDATE  between '"+year+"-"+month+"-"+day+" 00:00:00' and '"+year+"-"+month+"-"+(day+1)+" 00:00:00' then 1 else 0 end) as d_count ";
+				sql+=" FROM ( SELECT * from user_info WHERE f_id = '"+ UserId +"' ) A LEFT outer JOIN (SELECT * from mms_log where STATUS=3 AND FILE_CNT!=0) B ON A.f_index = B.ETC2 ";
+		}else {		
+				sql+="sum(case when B.REQDATE  between '"+year+"-"+month+"-"+day+" 00:00:00' and '"+year+"-"+month+"-"+(day+1)+" 00:00:00' then 1 else 0 end) as d_count ";
+				sql+=" FROM ( SELECT * from user_info WHERE f_id = '"+ UserId +"' ) A LEFT outer JOIN (SELECT * from mms_log where STATUS=3 AND FILE_CNT=0) B ON A.f_index = B.ETC2 ";
+		}
+		try {
+			conn = dataSource.getConnection();						
+			pstmt = conn.prepareStatement(sql);			
+			rs = pstmt.executeQuery();
+			if(rs.next()){
+				count =  rs.getString("d_count");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("UserStatisticsCount 에러 : " + e.getMessage());
+		}finally{
+			connClose();
+		}
+		return count;
+	}
+	
 }

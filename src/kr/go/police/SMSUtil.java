@@ -337,5 +337,23 @@ public class SMSUtil {
 		return phone;
 	} 
 	
+	//	join
+	public static String implodeArray(String[] inputArray, String glueString) {
+		/** Output variable */
+		String output = "";
+		if (inputArray.length > 0) {
+			StringBuilder sb = new StringBuilder();
+			sb.append(inputArray[0]);
+
+			for (int i=1; i<inputArray.length; i++) {
+				sb.append(glueString);
+				sb.append(inputArray[i]);
+			}
+
+			output = sb.toString();
+		}
+
+		return output;
+		}	
 	
 }

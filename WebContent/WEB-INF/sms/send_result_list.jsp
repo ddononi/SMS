@@ -55,7 +55,7 @@ select{width: 100px;}
 						<option value="message" ${type == "message"?"selected":""} >메세지</option>
 						<option value="to" ${type == "to"?"selected":""} >받는번호</option>
 					</select>							
-						<input title="검색어를 입력하세요" style="margin-bottom: 3px;" value="${search}"  class="search phone" type="text" name="search" id="search" size="20" />
+						<input title="검색어를 입력하세요" style="margin-bottom: 3px;" value="${search}"  class="search" type="text" name="search" id="search" size="20" />
 						<a  href="#"  onclick="return false;" id="search_btn"><img style="margin-bottom:5px;margin-right:5px; right;vertical-align: middle;"  src="./images/base/category_btn.gif" /></a>
 					</div>
 				</form>
@@ -126,7 +126,7 @@ select{width: 100px;}
 					<input value="user"  name="from" type="hidden" />
 					<input value="./SmsSendResultAction.sm" name="page" type="hidden" />
 					<input value="${page}" name="page" type="hidden" />				
-					<a href="#" onclick="return false;" id="del_btn">삭제</a>
+					<!-- <a href="#" onclick="return false;" id="del_btn">삭제</a> -->
 				</form>
 				<div style="clear: both;"></div>				
 				<c:if test="${(empty sendList) == false}">
@@ -145,9 +145,16 @@ select{width: 100px;}
 			</li>								
 		</ul>
 	</div>	
+	
+	<!-- chart content -->
+	<div id="chart_dlg"  title="차트보기"  >
+		<div id="chartdiv" style="width: 800px; height: 400px; margin: 20px;" ></div>
+	</div>	
+		
 </body>
 <link rel="stylesheet" type="text/css"  href="./css/simplemodal-basic.css" />        
 <script type="text/javascript" src="./js/plug-in/jquery.simplemodal.js"></script>
+<script src="./js/amcharts/amcharts.js" type="text/javascript"></script>        
 <script type="text/javascript">
 <!--
 $(function(){
@@ -239,6 +246,7 @@ $(function(){
 	$("#top_menu1 > img").attr("src", "./images/top/menu01_on.gif");
 	$("#send_result_list_menu > img").attr("src", "./images/top/menu_sub03_on.gif");
 	$("#send_result_list_menu").attr("data-on", "on");
+
 });	
 //-->
 </script>

@@ -147,7 +147,7 @@
                 <ul class="gnb_sub2">
                     <li><a href="./AllSendListAction.sm"  id="all_send_result_list_sub_menu"><img src="./images/admin/menu_admin_sub08_off.gif"  alt="발송내역" border="0"/></a></li>
                     <li><a href="./AllReserveListAction.sm"  id="all_reserved_list_sub_menu"><img src="./images/admin/menu_admin_sub09_off.gif"  alt="예약내역" border="0"/></a></li>
-                    <li><a href="#"  id="stats_sub_menu"><img src="./images/admin/menu_admin_sub10_off.gif"  alt="통계" border="0"/></a></li>                                                
+                    <li><a href="./AllStatisticsAction.sm"  id="stats_sub_menu"><img src="./images/admin/menu_admin_sub10_off.gif"  alt="통계" border="0"/></a></li>                    
                 </ul>
             </li>
             <li class="gnb_sub">

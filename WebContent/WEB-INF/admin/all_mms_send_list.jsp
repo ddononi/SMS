@@ -51,7 +51,7 @@ select{width: 100px;}
 						<option value="message" ${type == "message"?"selected":""} >메세지</option>
 						<option value="to" ${type == "to"?"selected":""} >받는번호</option>
 					</select>							
-						<input title="검색어를 입력하세요" style="margin-bottom: 3px;" value="${search}"  class="search phone" type="text" name="search" id="search" size="20" />
+						<input title="검색어를 입력하세요" style="margin-bottom: 3px;" value="${search}"  class="search"  type="text" name="search" id="search" size="20" />
 						<a  href="#"  onclick="return false;" id="search_btn"><img style="margin-bottom:5px;margin-right:5px; right;vertical-align: middle;"  src="./images/base/category_btn.gif" /></a>
 					</div>
 				</form>
