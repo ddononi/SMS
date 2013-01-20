@@ -649,7 +649,6 @@ $(document).ready(function(){
 	});
 	
 	$("#vknPad").click(function(){ // Virtual Numeric Keypad
-	//	alert("Virtual Numeric Keypad 는 현재 지원 되지 않습니다.(추후 지원 예정)");
 		if( currentPhoneInput == null){
 			currentPhoneInput = $("#recvPhone1");
 		}
@@ -673,7 +672,7 @@ $(document).ready(function(){
 			currentPhoneInput
 			.val( v.substr(0, (len-1) ) ).focus();				
 		}else{
-			if(len < 12 ){	//  핸드폰 자릿수가 넘지 않을때만
+			if(len < 13 ){	//  핸드폰 자릿수가 넘지 않을때만
 				currentPhoneInput
 				.val( v.concat( $(this).text() ) ).focus();
 			}

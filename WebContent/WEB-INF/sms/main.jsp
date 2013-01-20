@@ -145,9 +145,9 @@
 <%--  문자 전송 폼--%>		  
 <div id="send_form_dlg" style="margin-top: 5px; vertical-align:middle;" title="파일첨부">      
 	<p style="line-height: 22px; margin-bottom: 10px" >
-		첨부파일은 이미지 100Kb(jpg형식, 176 * 144 크기) 이내<br/>
+		첨부파일은 이미지 100Kb(jpg형식) 이내<br/>
 		동영상파일은 300Kb이내로 첨부해야 합니다.<br/>
-		(동영상 첨부시 반드시 skm 혹은 k3g형식 첨부)
+		(동영상 첨부시 반드시 k3g형식 첨부)
 		<!-- 
 		동영상파일은 300Kb이내로 첨부해야 합니다.<br/>
 		(동영상 첨부시 반드시 skm, k3g형식 모두 첨부)
